@@ -735,12 +735,16 @@ function renderAddListChecks(){
   const wrap=document.getElementById('list-checks-add');
   if(!S.lists.length){wrap.innerHTML='<span class="hint">No lists yet — create one via ⊞ Lists.</span>';return;}
   wrap.innerHTML=S.lists.map(l=>`
-    <label class="lcheck ${clists.includes(l.name)?'on':''}" onclick="toggleLC('${esc(l.name)}',this)">
-      <input type="checkbox" ${clists.includes(l.name)?'checked':''}/>
+    <label class="lcheck ${clists.includes(l.name)?'on':''}">
+      <input type="checkbox" ${clists.includes(l.name)?'checked':''} onchange="toggleLC('${esc(l.name)}',this.parentElement,this.checked)"/>
       ${esc(l.name)}
     </label>`).join('');
 }
-function toggleLC(name,el){const idx=clists.indexOf(name);if(idx>=0){clists.splice(idx,1);el.classList.remove('on');}else{clists.push(name);el.classList.add('on');}}
+function toggleLC(name,el,checked){
+  const idx=clists.indexOf(name);
+  if(checked&&idx<0){clists.push(name);el.classList.add('on');}
+  else if(!checked&&idx>=0){clists.splice(idx,1);el.classList.remove('on');}
+}
 
 // ── ADD / EDIT ────────────────────────────────────────────
 function openAddModal(){
