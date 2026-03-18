@@ -6,14 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ReadQueue">
 <title>ReadQueue</title>
-<script src="https://accounts.google.com/gsi/client" async></script>
-<script src="https://apis.google.com/js/api.js?onload=onGapiLoad" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg:#F7F5F0;--surface:#FFFFFF;--surface2:#F0EDE6;
+  --bg:#F7F5F0;--surface:#FFF;--surface2:#F0EDE6;
   --border:#E2DDD4;--border2:#C8C2B8;
   --text:#1A1714;--text2:#6B6560;--text3:#9E9890;
   --accent:#2A5C45;--accent-light:#E8F2EC;--accent-text:#1A3D2E;
@@ -44,38 +43,39 @@
 html{font-size:16px;-webkit-text-size-adjust:100%;}
 body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
 
-/* ── CONNECT SHEET SCREEN ── */
-#connect-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;}
-#connect-screen.show{display:flex;}
-.connect-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem;box-shadow:var(--shadow-lg);max-width:420px;width:100%;text-align:center;}
-.connect-icon{font-size:2.5rem;opacity:.7;}
-.connect-title{font-family:var(--fd);font-size:1.2rem;font-style:italic;font-weight:700;}
-.connect-desc{font-size:.85rem;color:var(--text2);line-height:1.6;}
-.connect-err{font-size:.8rem;color:var(--red);background:var(--red-light);padding:.5rem .9rem;border-radius:var(--radius-sm);display:none;width:100%;}
-.connect-err.show{display:block;}
+/* ── AUTH SCREENS ── */
+.auth-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:1.5rem;}
+.auth-screen.show{display:flex;}
+.auth-logo{font-family:var(--fd);font-size:2rem;font-weight:700;letter-spacing:-.02em;}
+.auth-logo span{color:var(--accent);font-style:italic;}
+.auth-sub{font-size:.88rem;color:var(--text2);text-align:center;max-width:300px;line-height:1.6;}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem;width:100%;max-width:380px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:1rem;}
+.auth-card h2{font-family:var(--fd);font-size:1.1rem;font-style:italic;font-weight:500;text-align:center;}
+.auth-err{font-size:.8rem;color:var(--red);background:var(--red-light);padding:.5rem .8rem;border-radius:var(--radius-sm);display:none;}
+.auth-err.show{display:block;}
+.auth-ok{font-size:.8rem;color:var(--accent-text);background:var(--accent-light);padding:.5rem .8rem;border-radius:var(--radius-sm);display:none;}
+.auth-ok.show{display:block;}
+.auth-switch{font-size:.8rem;color:var(--text2);text-align:center;}
+.auth-switch a{color:var(--accent);cursor:pointer;text-decoration:none;}
+.auth-switch a:hover{text-decoration:underline;}
 
-/* ── SIGN-IN SCREEN ── */
-#signin-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:2rem;}
-#signin-screen.show{display:flex;}
-.signin-logo{font-family:var(--fd);font-size:2.2rem;font-weight:700;color:var(--text);letter-spacing:-.02em;}
-.signin-logo span{color:var(--accent);font-style:italic;}
-.signin-sub{font-size:.9rem;color:var(--text2);max-width:320px;text-align:center;line-height:1.6;}
-.signin-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem;box-shadow:var(--shadow-lg);}
-.signin-err{font-size:.8rem;color:var(--red);background:var(--red-light);padding:.5rem .9rem;border-radius:var(--radius-sm);display:none;}
-.signin-err.show{display:block;}
-
-/* ── APP SHELL ── */
-.app{display:flex;flex-direction:column;min-height:100vh;max-width:1000px;margin:0 auto;}
+/* ── APP ── */
+.app{display:none;flex-direction:column;min-height:100vh;max-width:1000px;margin:0 auto;}
+.app.show{display:flex;}
 .header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;}
 .logo{font-family:var(--fd);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:-.02em;}
 .logo span{color:var(--accent);font-style:italic;}
 .hr{display:flex;gap:8px;align-items:center;}
 .main{flex:1;padding:1.25rem 1.5rem;}
+.user-pill{display:flex;align-items:center;gap:6px;padding:.3rem .65rem;border:1px solid var(--border);border-radius:20px;font-size:.78rem;color:var(--text2);cursor:pointer;transition:all var(--tr);}
+.user-pill:hover{background:var(--surface2);border-color:var(--border2);}
+.user-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fb);font-size:.84rem;font-weight:500;padding:.45rem .9rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all var(--tr);white-space:nowrap;}
 .btn:hover{background:var(--surface2);border-color:var(--border2);}
 .btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .btn-p{background:var(--accent);color:#fff;border-color:var(--accent);}
 .btn-p:hover{opacity:.88;background:var(--accent);}
 .btn-sm{padding:.3rem .65rem;font-size:.78rem;}
@@ -86,15 +86,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100
 .btn-d:hover{background:var(--red-light);}
 .btn-pu{background:var(--purple-light);color:var(--purple);border-color:var(--purple-light);}
 .btn-pu:hover{opacity:.85;}
-
-/* ── USER AVATAR ── */
-.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-light);color:var(--accent-text);font-size:.75rem;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);overflow:hidden;}
-.avatar img{width:100%;height:100%;object-fit:cover;}
-
-/* ── PROFILE ── */
-.ptoggle{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
-.pbtn{padding:.3rem .7rem;font-size:.78rem;font-weight:500;background:transparent;border:none;cursor:pointer;color:var(--text2);font-family:var(--fb);transition:all var(--tr);}
-.pbtn.active{background:var(--accent);color:#fff;}
+.btn-full{width:100%;justify-content:center;padding:.6rem;}
 
 /* ── LIST TABS ── */
 .list-tabs{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
@@ -143,7 +135,7 @@ select.fs:focus{outline:none;border-color:var(--accent);}
 .br{background:var(--accent-light);color:var(--accent-text);}
 .bi{background:var(--blue-light);color:var(--blue);}
 .tbadge{display:inline-flex;align-items:center;gap:3px;padding:.15rem .45rem;border-radius:4px;font-size:.71rem;background:var(--tag-bg);color:var(--tag-text);}
-.lbadge{display:inline-flex;align-items:center;padding:.13rem .45rem;border-radius:4px;font-size:.69rem;font-weight:500;background:var(--purple-light);color:var(--purple);}
+.lbadge{padding:.13rem .45rem;border-radius:4px;font-size:.69rem;font-weight:500;background:var(--purple-light);color:var(--purple);}
 .ph{color:var(--red);font-weight:600;font-size:.75rem;}
 .pm{color:var(--amber);font-size:.75rem;}
 .pl{color:var(--text3);font-size:.75rem;}
@@ -171,13 +163,13 @@ select.fs:focus{outline:none;border-color:var(--accent);}
 /* ── FORM ── */
 .fg{display:flex;flex-direction:column;gap:4px;}
 label{font-size:.78rem;font-weight:500;color:var(--text2);}
-input[type=text],input[type=url],input[type=number],input[type=email],textarea,select.fsel{padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--fb);font-size:.86rem;transition:border-color var(--tr);width:100%;}
+input[type=text],input[type=url],input[type=number],input[type=email],input[type=password],textarea,select.fsel{padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--fb);font-size:.86rem;transition:border-color var(--tr);width:100%;}
 input:focus,textarea:focus,select.fsel:focus{outline:none;border-color:var(--accent);}
 textarea{resize:vertical;min-height:76px;}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
 .hint{font-size:.73rem;color:var(--text3);}
 
-/* ── LIST CHECKBOXES in modal ── */
+/* ── LIST CHECKBOXES ── */
 .list-checks{display:flex;flex-wrap:wrap;gap:6px;}
 .lcheck{display:flex;align-items:center;gap:5px;padding:.3rem .65rem;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:.8rem;transition:all var(--tr);user-select:none;}
 .lcheck:hover{border-color:var(--border2);}
@@ -218,83 +210,82 @@ textarea{resize:vertical;min-height:76px;}
 .tainp{flex:1;background:transparent;border:none;outline:none;font-family:var(--fb);font-size:.84rem;color:var(--text);resize:none;min-height:1.4em;line-height:1.5;}
 .tainp::placeholder{color:var(--text3);}
 
-/* ── LISTS MANAGER MODAL ── */
-.list-manager-row{display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid var(--border);}
-.list-manager-row:last-child{border-bottom:none;}
-.lm-name{flex:1;font-size:.88rem;}
-.lm-count{font-size:.75rem;color:var(--text3);}
+/* ── LISTS MANAGER ── */
+.lmrow{display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid var(--border);}
+.lmrow:last-child{border-bottom:none;}
+.lmname{flex:1;font-size:.88rem;}
+.lmcount{font-size:.75rem;color:var(--text3);}
 
-/* ── SHARE EMAIL PREVIEW ── */
-.email-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:.8rem;color:var(--text2);max-height:240px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;word-break:break-word;}
+/* ── EMAIL PREVIEW ── */
+.email-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:.78rem;color:var(--text2);max-height:240px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;word-break:break-word;line-height:1.5;}
 
-@media(max-width:600px){.main{padding:.9rem 1rem;}.fr{grid-template-columns:1fr;}.header{padding:.75rem 1rem;}}
-
+hr.dpd{border:none;border-top:1px solid var(--border);}
 .lbtn{display:inline-flex;align-items:center;gap:5px;color:var(--accent);text-decoration:none;font-size:.8rem;}
 .lbtn:hover{text-decoration:underline;}
-hr.dpd{border:none;border-top:1px solid var(--border);}
+@media(max-width:600px){.main{padding:.9rem 1rem;}.fr{grid-template-columns:1fr;}.header{padding:.75rem 1rem;}}
 </style>
 </head>
 <body>
 
-<!-- SIGN-IN SCREEN -->
-<div id="signin-screen" class="show">
-  <div class="signin-logo">Read<span>Queue</span></div>
-  <div class="signin-sub">Your personal reading and listening queue, synced across all your devices.</div>
-  <div class="signin-card">
-    <div style="font-size:.85rem;color:var(--text2);text-align:center">Sign in with your Google account to access your queue.</div>
-    <div id="g_id_onload" data-client_id="781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com" data-callback="onGoogleSignIn" data-auto_select="true" data-itp_support="true"></div>
-    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-    <div class="signin-err" id="signin-err">Access denied. This account is not authorised to use ReadQueue.</div>
+<!-- SIGN IN -->
+<div class="auth-screen show" id="screen-signin">
+  <div class="auth-logo">Read<span>Queue</span></div>
+  <div class="auth-sub">Your personal reading and listening queue, synced across all your devices.</div>
+  <div class="auth-card">
+    <h2>Sign in</h2>
+    <div class="fg"><label>Email</label><input type="email" id="si-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')signIn()"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="si-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')signIn()"/></div>
+    <div class="auth-err" id="si-err"></div>
+    <button class="btn btn-p btn-full" id="si-btn" onclick="signIn()">Sign in</button>
+    <div class="auth-switch">No account? <a onclick="showScreen('screen-signup')">Create one</a> &nbsp;·&nbsp; <a onclick="showScreen('screen-reset')">Forgot password?</a></div>
   </div>
 </div>
 
-<!-- CONNECT SHEET SCREEN -->
-<div id="connect-screen">
-  <div class="signin-logo">Read<span>Queue</span></div>
-  <div class="connect-card">
-    <div class="connect-icon">📊</div>
-    <div class="connect-title">Connect your ReadQueue sheet</div>
-    <div class="connect-desc">
-      Paste your Google Sheet ID below to connect your queue. You'll only need to do this once per device — it's remembered automatically.
-    </div>
-    <div style="width:100%;display:flex;flex-direction:column;gap:6px">
-      <input type="text" id="manual-sheet-id" placeholder="Paste your Sheet ID or full Sheet URL…"
-        style="width:100%;font-size:.84rem;padding:.55rem .7rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);"
-        onkeydown="if(event.key==='Enter')connectManual()"/>
-      <button class="btn btn-p" style="width:100%;justify-content:center;padding:.65rem" onclick="connectManual()">
-        Connect sheet
-      </button>
-    </div>
-    <div class="connect-err" id="connect-err"></div>
-    <div style="font-size:.75rem;color:var(--text3);line-height:1.6;text-align:center">
-      Your Sheet ID is the long string in the Sheet URL between <code style="font-size:.72rem">/d/</code> and <code style="font-size:.72rem">/edit</code><br>
-      Your ReadQueue Sheet ID is:<br>
-      <code style="font-size:.72rem;word-break:break-all">1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk</code>
-    </div>
+<!-- SIGN UP -->
+<div class="auth-screen" id="screen-signup">
+  <div class="auth-logo">Read<span>Queue</span></div>
+  <div class="auth-sub">Create your free ReadQueue account.</div>
+  <div class="auth-card">
+    <h2>Create account</h2>
+    <div class="fg"><label>Email</label><input type="email" id="su-email" placeholder="you@example.com"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="su-pass" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')signUp()"/></div>
+    <div class="auth-err" id="su-err"></div>
+    <div class="auth-ok" id="su-ok"></div>
+    <button class="btn btn-p btn-full" id="su-btn" onclick="signUp()">Create account</button>
+    <div class="auth-switch">Already have an account? <a onclick="showScreen('screen-signin')">Sign in</a></div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD -->
+<div class="auth-screen" id="screen-reset">
+  <div class="auth-logo">Read<span>Queue</span></div>
+  <div class="auth-card">
+    <h2>Reset password</h2>
+    <div class="fg"><label>Email</label><input type="email" id="rs-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')resetPass()"/></div>
+    <div class="auth-err" id="rs-err"></div>
+    <div class="auth-ok" id="rs-ok"></div>
+    <button class="btn btn-p btn-full" onclick="resetPass()">Send reset link</button>
+    <div class="auth-switch"><a onclick="showScreen('screen-signin')">← Back to sign in</a></div>
   </div>
 </div>
 
 <!-- APP -->
-<div class="app" id="app" style="display:none">
+<div class="app" id="app">
   <header class="header">
     <div class="logo">Read<span>Queue</span></div>
     <div class="hr">
-      <div class="ptoggle">
-        <button class="pbtn active" id="p-me" onclick="switchProfile('me')">Me</button>
-        <button class="pbtn" id="p-pt" onclick="switchProfile('partner')">Partner</button>
-      </div>
       <button class="btn btn-sm btn-gh" onclick="openListsManager()">⊞ Lists</button>
       <button class="btn btn-sm btn-gh" onclick="openSettings()">⚙ Settings</button>
       <button class="btn btn-p btn-sm" onclick="openAddModal()">+ Add</button>
-      <div class="avatar" id="user-avatar" title="Sign out" onclick="signOut()"></div>
+      <div class="user-pill" onclick="signOut()" title="Sign out">
+        <div class="user-dot"></div>
+        <span id="user-email-display"></span>
+      </div>
     </div>
   </header>
 
   <main class="main">
-    <!-- List tabs -->
     <div class="list-tabs" id="list-tabs"></div>
-
-    <!-- Controls -->
     <div class="controls">
       <div class="sw">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -304,9 +295,8 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
       <select class="fs" id="f-type" onchange="renderList()"><option value="">All types</option><option value="article">Article</option><option value="podcast">Podcast</option><option value="video">Video</option><option value="pdf">PDF</option><option value="substack">Substack</option><option value="journal">Journal</option><option value="other">Other</option></select>
       <select class="fs" id="f-prio" onchange="renderList()"><option value="">All priorities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
       <select class="fs" id="f-tag" onchange="renderList()"><option value="">All tags</option></select>
-      <select class="fs" id="f-sort" onchange="renderList()"><option value="saved_desc">Newest first</option><option value="saved_asc">Oldest first</option><option value="prio">Priority</option><option value="title">Title A–Z</option><option value="time">Read time</option></select>
+      <select class="fs" id="f-sort" onchange="renderList()"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="prio">Priority</option><option value="title">Title A–Z</option><option value="time">Read time</option></select>
     </div>
-
     <div class="sbar" id="sbar"></div>
     <div class="card-list" id="clist"></div>
     <div id="empty" class="empty" style="display:none">
@@ -332,7 +322,7 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
         <div class="fg"><label>Priority</label><select class="fsel" id="f-prio-inp"><option value="medium">Medium</option><option value="high">↑ High</option><option value="low">Low</option></select></div>
       </div>
       <div class="fr">
-        <div class="fg"><label>Estimated time (min)</label><input type="number" id="f-time" placeholder="10" min="1" max="999"/></div>
+        <div class="fg"><label>Est. time (min)</label><input type="number" id="f-time" placeholder="10" min="1" max="999"/></div>
         <div class="fg"><label>Source / recommender</label><input type="text" id="f-src" placeholder="Morning Brew, John…"/></div>
       </div>
       <div class="fg">
@@ -340,7 +330,7 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
         <div class="tiw" id="tiw" onclick="document.getElementById('tri').focus()"><input class="tri" id="tri" placeholder="finance, AI…" onkeydown="tkd(event)"/></div>
       </div>
       <div class="fg">
-        <label>Custom lists <span class="hint">(assign to one or more lists)</span></label>
+        <label>Lists <span class="hint">(assign to one or more lists)</span></label>
         <div class="list-checks" id="list-checks-add"></div>
       </div>
       <div class="fg"><label>Status</label><select class="fsel" id="f-status-inp"><option value="unreviewed">Unreviewed</option><option value="in-progress">In progress</option><option value="reviewed">Reviewed</option></select></div>
@@ -351,22 +341,23 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
 
 <!-- SETTINGS MODAL -->
 <div class="overlay" id="m-set" onclick="mc(event,'m-set')">
-  <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
+  <div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
     <div class="mhdr"><span class="mtitle">Settings</span><button class="btn btn-ic btn-gh" onclick="cm('m-set')">✕</button></div>
     <div class="mbody">
-      <div class="fg"><label>Anthropic API Key <span class="hint">(for AI tagging)</span></label><input type="text" id="s-ant" placeholder="sk-ant-…"/><span class="hint">Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a></span></div>
-      <div class="fg"><label>Profile names</label><div class="fr"><input type="text" id="s-nm" placeholder="Me"/><input type="text" id="s-np" placeholder="Partner"/></div></div>
-      <div style="padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text2)">
-        Signed in as <strong id="s-email"></strong><br>
-        <span class="hint">Connected sheet: <span id="s-sheetid" style="font-family:monospace;font-size:.72rem"></span></span><br>
-        <button class="btn btn-sm btn-gh" style="margin-top:.5rem;font-size:.75rem" onclick="disconnectSheet()">↺ Connect a different sheet</button>
+      <div class="fg">
+        <label>Anthropic API Key <span class="hint">(for AI tagging)</span></label>
+        <input type="text" id="s-ant" placeholder="sk-ant-…"/>
+        <span class="hint">Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a> — personal use costs ~$1–3/month</span>
+      </div>
+      <div style="padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm);font-size:.82rem;color:var(--text2);line-height:1.6;">
+        Signed in as <strong id="s-email"></strong>
       </div>
     </div>
     <div class="mfoot"><button class="btn" onclick="cm('m-set')">Cancel</button><button class="btn btn-p" onclick="saveSettings()">Save</button></div>
   </div>
 </div>
 
-<!-- LISTS MANAGER MODAL -->
+<!-- LISTS MANAGER -->
 <div class="overlay" id="m-lists" onclick="mc(event,'m-lists')">
   <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
     <div class="mhdr"><span class="mtitle">Custom lists</span><button class="btn btn-ic btn-gh" onclick="cm('m-lists')">✕</button></div>
@@ -374,11 +365,11 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
       <div class="fg">
         <label>Create new list</label>
         <div style="display:flex;gap:8px">
-          <input type="text" id="new-list-name" placeholder="e.g. AI, Finance, Book club…" style="flex:1" onkeydown="if(event.key==='Enter')createList()"/>
+          <input type="text" id="new-list-name" placeholder="e.g. Finance, Book club…" style="flex:1" onkeydown="if(event.key==='Enter')createList()"/>
           <button class="btn btn-p btn-sm" onclick="createList()">Create</button>
         </div>
       </div>
-      <div id="lists-manager-rows"></div>
+      <div id="lm-rows"></div>
     </div>
     <div class="mfoot"><button class="btn btn-p" onclick="cm('m-lists')">Done</button></div>
   </div>
@@ -389,20 +380,22 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
   <div class="modal" style="max-width:540px" onclick="event.stopPropagation()">
     <div class="mhdr"><span class="mtitle" id="share-title">Share list</span><button class="btn btn-ic btn-gh" onclick="cm('m-share')">✕</button></div>
     <div class="mbody">
-      <div class="fg">
-        <label>Recipient email address</label>
-        <input type="email" id="share-email" placeholder="name@example.com"/>
-      </div>
-      <div class="fg">
-        <label>Preview <span class="hint">(this is what the email will contain)</span></label>
-        <div class="email-preview" id="email-preview"></div>
-      </div>
-      <div class="hint" style="margin-top:-.25rem">Clicking "Open in email" will open your default email app with this content pre-filled. You can edit before sending.</div>
+      <div class="fg"><label>Recipient email</label><input type="email" id="share-email" placeholder="name@example.com"/></div>
+      <div class="fg"><label>Preview</label><div class="email-preview" id="email-preview"></div></div>
+      <span class="hint">Clicking "Open in email" opens your mail app with this pre-filled. You can edit before sending.</span>
     </div>
-    <div class="mfoot">
-      <button class="btn" onclick="cm('m-share')">Cancel</button>
-      <button class="btn btn-pu" onclick="openEmail()">✉ Open in email</button>
+    <div class="mfoot"><button class="btn" onclick="cm('m-share')">Cancel</button><button class="btn btn-pu" onclick="openEmail()">✉ Open in email</button></div>
+  </div>
+</div>
+
+<!-- RENAME LIST -->
+<div class="overlay" id="m-rename" onclick="mc(event,'m-rename')">
+  <div class="modal" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle">Rename list</span><button class="btn btn-ic btn-gh" onclick="cm('m-rename')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>New name</label><input type="text" id="rename-inp" onkeydown="if(event.key==='Enter')confirmRename()"/></div>
     </div>
+    <div class="mfoot"><button class="btn" onclick="cm('m-rename')">Cancel</button><button class="btn btn-p" onclick="confirmRename()">Rename</button></div>
   </div>
 </div>
 
@@ -426,524 +419,236 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
   </div>
 </div>
 
-<!-- RENAME LIST MODAL -->
-<div class="overlay" id="m-rename" onclick="mc(event,'m-rename')">
-  <div class="modal" style="max-width:380px" onclick="event.stopPropagation()">
-    <div class="mhdr"><span class="mtitle">Rename list</span><button class="btn btn-ic btn-gh" onclick="cm('m-rename')">✕</button></div>
-    <div class="mbody">
-      <div class="fg"><label>List name</label><input type="text" id="rename-inp" placeholder="New name" onkeydown="if(event.key==='Enter')confirmRename()"/></div>
-    </div>
-    <div class="mfoot"><button class="btn" onclick="cm('m-rename')">Cancel</button><button class="btn btn-p" onclick="confirmRename()">Rename</button></div>
-  </div>
-</div>
-
 <script>
 // ── CONFIG ────────────────────────────────────────────────
-const CLIENT_ID  = '781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com';
-const SHEET_ID   = '1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk';
-const GOOGLE_KEY = 'AIzaSyAlsOop5T1K8O-rkUtk5w_swaMENP2Oz_o'; // used only for Picker UI, not Sheet writes
-// Allowed Google accounts
-const ALLOWED   = ['gmail.com']; // accepts ANY google account by default; restrict below
-// To restrict to specific emails, set:
-// const ALLOWED_EMAILS = ['you@gmail.com','partner@gmail.com'];
-const ALLOWED_EMAILS = null; // null = allow any signed-in Google account
+const SB_URL = 'https://upokhjojzzgfhzehkypx.supabase.co';
+const SB_KEY = 'sb_publishable_BA1O7ue8GB9uL1CLOTXPNA_r0vaak5v';
+const ANTHROPIC_KEY_STORAGE = 'rq_ak';
 
-const SN  = 'Items';
-const SL  = 'Lists'; // second sheet for custom list definitions
-const C   = {id:0,pr:1,url:2,ti:3,de:4,ty:5,pi:6,tm:7,sr:8,st:9,tg:10,sv:11,up:12,t1:13,t2:14,t3:15,ls:16};
-// ls = column Q = custom lists (comma-separated list names)
+// ── INIT SUPABASE ─────────────────────────────────────────
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
 
-// ── STATE ────────────────────────────────────────────────
-let S = {
-  items:[],
-  lists:[], // [{id,name,createdAt}]
-  profile:'me',
-  ak:'',
-  names:{me:'Me',partner:'Partner'},
-  accessToken:null,
-  userEmail:'',
-  userName:'',
-  userPic:'',
-  sheetId:null, // set via Google Picker, persisted in localStorage
-};
-let eid=null,did=null,ctags=[],clists=[],utmr=null;
-let renamingListId=null;
-let shareListName=null;
+// ── STATE ─────────────────────────────────────────────────
+let S = { items:[], lists:[], user:null };
+let eid=null, did=null, ctags=[], clists=[], utmr=null, renamingId=null, shareListName=null;
 
 const TICO={article:'📄',podcast:'🎙',video:'▶',pdf:'📑',substack:'✉',journal:'🔬',other:'📎'};
 const PO={high:0,medium:1,low:2};
 const SLL={unreviewed:'● Unreviewed','in-progress':'◑ In progress',reviewed:'✓ Reviewed'};
 
-// ── LOCAL STORAGE ─────────────────────────────────────────
-function ldl(){try{const r=JSON.parse(localStorage.getItem('rq4')||'{}');S.ak=r.ak||'';S.names=r.names||{me:'Me',partner:'Partner'};S.profile=r.profile||'me';S.sheetId=r.sheetId||SHEET_ID;}catch(e){}}
-function svl(){localStorage.setItem('rq4',JSON.stringify({ak:S.ak,names:S.names,profile:S.profile,sheetId:S.sheetId}));}
+function getAK(){return localStorage.getItem(ANTHROPIC_KEY_STORAGE)||'';}
+function setAK(k){localStorage.setItem(ANTHROPIC_KEY_STORAGE,k);}
 
-// ── GOOGLE SIGN-IN ────────────────────────────────────────
-function onGoogleSignIn(response) {
-  // Decode JWT
-  const payload = JSON.parse(atob(response.credential.split('.')[1]));
-  const email = payload.email;
-  if (ALLOWED_EMAILS && !ALLOWED_EMAILS.includes(email)) {
-    document.getElementById('signin-err').classList.add('show');
-    return;
-  }
-  S.userEmail = email;
-  S.userName  = payload.name || email;
-  S.userPic   = payload.picture || '';
-  // Get OAuth token for Sheets API via token client
-  initTokenClient();
-}
-
-let tokenClient;
-function initTokenClient() {
-  // We use the spreadsheets scope so the token works with a known sheet ID.
-  // drive.file requires a picker flow which GitHub Pages blocks via COOP headers.
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
-    callback: async (tokenResponse) => {
-      if (tokenResponse.error) {
-        document.getElementById('signin-err').textContent = 'Authentication failed: ' + tokenResponse.error;
-        document.getElementById('signin-err').classList.add('show');
-        return;
-      }
-      S.accessToken = tokenResponse.access_token;
-      setTimeout(refreshToken, 55 * 60 * 1000);
-      await bootApp();
-    }
+// ── AUTH ──────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.auth-screen,.app').forEach(el=>{
+    el.classList.remove('show');
+    if(el.classList.contains('app'))el.style.display='';
   });
-  tokenClient.requestAccessToken({ prompt: '' });
+  const el=document.getElementById(id);
+  if(el.classList.contains('app')){el.style.display='flex';}
+  else{el.classList.add('show');}
 }
 
-function refreshToken() {
-  if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+async function signIn(){
+  const email=document.getElementById('si-email').value.trim();
+  const pass=document.getElementById('si-pass').value;
+  const err=document.getElementById('si-err');
+  const btn=document.getElementById('si-btn');
+  err.classList.remove('show');btn.disabled=true;btn.textContent='Signing in…';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='Sign in';
+  if(error){err.textContent=error.message;err.classList.add('show');return;}
+  await bootApp(data.user);
 }
 
-function signOut() {
-  if (!confirm('Sign out of ReadQueue?')) return;
-  google.accounts.id.disableAutoSelect();
-  S.accessToken = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('signin-screen').classList.add('show');
+async function signUp(){
+  const email=document.getElementById('su-email').value.trim();
+  const pass=document.getElementById('su-pass').value;
+  const err=document.getElementById('su-err');
+  const ok=document.getElementById('su-ok');
+  const btn=document.getElementById('su-btn');
+  err.classList.remove('show');ok.classList.remove('show');
+  btn.disabled=true;btn.textContent='Creating account…';
+  const {data,error}=await sb.auth.signUp({email,password:pass});
+  btn.disabled=false;btn.textContent='Create account';
+  if(error){err.textContent=error.message;err.classList.add('show');return;}
+  if(data.user&&data.session){await bootApp(data.user);}
+  else{ok.textContent='Check your email for a confirmation link, then sign in.';ok.classList.add('show');}
 }
 
-async function bootApp() {
-  document.getElementById('signin-screen').classList.remove('show');
-  ldl();
-  // Avatar (set early so it's ready when app shows)
-  const av = document.getElementById('user-avatar');
-  if (S.userPic) av.innerHTML = `<img src="${S.userPic}" alt="">`;
-  else av.textContent = S.userEmail.slice(0,2).toUpperCase();
-  upl();
-
-  // If no sheet ID stored yet, show the picker screen
-  if (!S.sheetId) {
-    document.getElementById('connect-screen').classList.add('show');
-    // Pre-load the picker API in background
-    if (window.gapi) gapi.load('picker', ()=>{});
-    return;
-  }
-  launchApp();
+async function resetPass(){
+  const email=document.getElementById('rs-email').value.trim();
+  const err=document.getElementById('rs-err');
+  const ok=document.getElementById('rs-ok');
+  err.classList.remove('show');ok.classList.remove('show');
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+  if(error){err.textContent=error.message;err.classList.add('show');return;}
+  ok.textContent='Reset link sent — check your email.';ok.classList.add('show');
 }
 
-async function launchApp() {
-  document.getElementById('connect-screen').classList.remove('show');
-  document.getElementById('app').style.display = 'flex';
-  setSbar('<div class="loading"><div class="spinner"></div> Loading…</div>');
-  await ensureHeaders();
-  await Promise.all([loadLists(), loadItems()]);
-  renderTabs();
-  renderList();
-  if (!S.ak) showAKPrompt();
+async function signOut(){
+  if(!confirm('Sign out?'))return;
+  await sb.auth.signOut();
+  S={items:[],lists:[],user:null};
+  showScreen('screen-signin');
 }
 
-// ── GOOGLE PICKER ─────────────────────────────────────────
-let pickerApiLoaded = false;
-
-// Called by gapi script onload callback
-function onGapiLoad() {
-  gapi.load('picker', () => { pickerApiLoaded = true; });
+// ── BOOT ──────────────────────────────────────────────────
+async function bootApp(user){
+  S.user=user;
+  document.getElementById('user-email-display').textContent=user.email;
+  document.getElementById('s-email').textContent=user.email;
+  document.getElementById('s-ant').value=getAK();
+  showScreen('app');
+  setSbar('<div class="loading"><div class="spinner"></div> Loading your queue…</div>');
+  await Promise.all([loadLists(),loadItems()]);
+  renderTabs();renderList();
+  if(!getAK())showAKPrompt();
 }
 
-function openPicker() {
-  const btn = document.querySelector('#connect-screen .btn-p');
-  const err = document.getElementById('connect-err');
-  if (btn) { btn.textContent = 'Loading picker…'; btn.disabled = true; }
-  if (err) err.classList.remove('show');
-
-  function onReady() {
-    if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
-    showPicker();
-  }
-
-  if (pickerApiLoaded) {
-    onReady();
-  } else {
-    gapi.load('picker', () => {
-      pickerApiLoaded = true;
-      onReady();
-    });
-  }
-}
-
-function showPicker() {
-  const err = document.getElementById('connect-err');
-  try {
-    if (!google || !google.picker) throw new Error('google.picker not available — Picker API may not be enabled in Google Cloud Console.');
-    if (!S.accessToken) throw new Error('No access token — please sign out and sign in again.');
-
-    const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
-      .setIncludeFolders(false)
-      .setSelectFolderEnabled(false);
-
-    const picker = new google.picker.PickerBuilder()
-      .addView(view)
-      .setOAuthToken(S.accessToken)
-      .setDeveloperKey(GOOGLE_KEY)
-      .setTitle('Select your ReadQueue Google Sheet')
-      .setCallback(pickerCallback)
-      .build();
-    picker.setVisible(true);
-  } catch(e) {
-    console.error('Picker error:', e);
-    if (err) {
-      err.textContent = 'Picker error: ' + e.message;
-      err.classList.add('show');
-    }
-    const btn = document.querySelector('#connect-screen .btn-p');
-    if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
-  }
-}
-
-async function pickerCallback(data) {
-  if (data.action === google.picker.Action.PICKED) {
-    const doc = data.docs[0];
-    S.sheetId = doc.id;
-    svl();
-    const err = document.getElementById('connect-err');
-    if (err) err.classList.remove('show');
-    launchApp();
-  }
-  // if CANCEL — stay on connect screen, do nothing
-}
-
-function connectManual() {
-  const val = document.getElementById('manual-sheet-id').value.trim();
-  if (!val) { alert('Please paste your Sheet ID.'); return; }
-  // Accept full URL or just the ID
-  const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  S.sheetId = match ? match[1] : val;
-  svl();
-  launchApp();
-}
-
-function showAKPrompt() {
-  // Show a subtle banner asking for Anthropic key
-  const b = document.createElement('div');
-  b.id = 'ak-banner';
-  b.style.cssText = 'background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:.6rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--amber);display:flex;align-items:center;gap:10px;';
-  b.innerHTML = `<span style="flex:1">Add your Anthropic API key in Settings to enable AI-powered tagging and descriptions.</span><button class="btn btn-sm" style="border-color:var(--amber);color:var(--amber)" onclick="openSettings();document.getElementById('ak-banner').remove()">Add key</button><button class="btn btn-ic btn-gh btn-sm" onclick="this.closest('#ak-banner').remove()">✕</button>`;
+function showAKPrompt(){
+  const existing=document.getElementById('ak-banner');
+  if(existing)return;
+  const b=document.createElement('div');
+  b.id='ak-banner';
+  b.style.cssText='background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:.6rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--amber);display:flex;align-items:center;gap:10px;';
+  b.innerHTML=`<span style="flex:1">Add your Anthropic API key in Settings to enable AI-powered tagging.</span><button class="btn btn-sm" style="border-color:var(--amber);color:var(--amber)" onclick="openSettings();document.getElementById('ak-banner').remove()">Add key</button><button class="btn btn-ic btn-gh btn-sm" onclick="this.closest('[id]').remove()">✕</button>`;
   document.querySelector('.main').prepend(b);
 }
 
-// ── SHEETS API (OAuth) ────────────────────────────────────
-async function sReq(method, path, body) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}${path}`;
-  const opts = { method, headers: { 'Authorization': 'Bearer ' + S.accessToken, 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(url, opts);
-  if (!r.ok) throw new Error(`${method} ${path} → ${r.status}: ${await r.text()}`);
-  return r.json();
-}
-const sGet    = (path)         => sReq('GET',    path);
-const sPost   = (path, body)   => sReq('POST',   path, body);
-const sPut    = (path, body)   => sReq('PUT',    path, body);
-
-async function ensureHeaders() {
-  try {
-    // Items sheet
-    const d = await sGet(`/values/${encodeURIComponent(SN+'!A1:Q1')}`);
-    const row = ((d.values||[])[0]||[]);
-    if (!row[0]) {
-      await sPost(`/values/${encodeURIComponent(SN+'!A1:Q1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-        {values:[['id','profile','url','title','desc','type','prio','time','source','status','tags','saved','updated','takeaway1','takeaway2','takeaway3','lists']]});
-    }
-    // Lists sheet — create if missing
-    const meta = await sGet('');
-    const sheets = (meta.sheets||[]).map(s=>s.properties.title);
-    if (!sheets.includes(SL)) {
-      await sPost(':batchUpdate', {requests:[{addSheet:{properties:{title:SL}}}]});
-      await sPost(`/values/${encodeURIComponent(SL+'!A1:C1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-        {values:[['id','name','createdAt']]});
-      // Seed with 'AI' list
-      await sPost(`/values/${encodeURIComponent(SL+'!A:C')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-        {values:[[uid(),'AI',Date.now()]]});
-    }
-  } catch(e) { console.error('ensureHeaders:', e); }
+// ── SUPABASE DB ───────────────────────────────────────────
+async function loadItems(){
+  sync('spin','Loading…');
+  const {data,error}=await sb.from('items').select('*').order('created_at',{ascending:false});
+  if(error){sync('err','Load failed: '+error.message);return;}
+  S.items=data.map(dbToItem);
+  sync('ok',`Synced · ${S.items.length} items`);
 }
 
-// ── LOAD ─────────────────────────────────────────────────
-async function loadItems() {
-  sync('spin','Loading items…');
-  try {
-    const d = await sGet(`/values/${encodeURIComponent(SN+'!A:Q')}`);
-    const rows = (d.values||[]).slice(1);
-    S.items = rows.filter(r=>r[C.id]&&r[C.ti]).map((r,i)=>r2i(r,i+2));
-    sync('ok',`Synced · ${S.items.length} items`);
-  } catch(e) { sync('err','Load failed: '+e.message); }
+async function loadLists(){
+  const {data,error}=await sb.from('lists').select('*').order('created_at',{ascending:true});
+  if(error){console.error('loadLists:',error);return;}
+  S.lists=data;
 }
 
-async function loadLists() {
-  try {
-    const d = await sGet(`/values/${encodeURIComponent(SL+'!A:C')}`);
-    const rows = (d.values||[]).slice(1);
-    S.lists = rows.filter(r=>r[0]&&r[1]).map((r,i)=>({id:r[0],name:r[1],createdAt:r[2]||0,_row:i+2}));
-  } catch(e) { console.error('loadLists:', e); }
-}
-
-function r2i(r,row) {
+function dbToItem(r){
   return {
-    id:r[C.id]||'',profile:r[C.pr]||'me',url:r[C.url]||'',title:r[C.ti]||'',desc:r[C.de]||'',
-    type:r[C.ty]||'article',prio:r[C.pi]||'medium',time:r[C.tm]?parseInt(r[C.tm]):null,
-    source:r[C.sr]||'',status:r[C.st]||'unreviewed',
-    tags:r[C.tg]?r[C.tg].split(',').map(t=>t.trim()).filter(Boolean):[],
-    saved:r[C.sv]?parseInt(r[C.sv]):Date.now(),updated:r[C.up]?parseInt(r[C.up]):Date.now(),
-    takeaways:[r[C.t1]||'',r[C.t2]||'',r[C.t3]||''].filter(Boolean),
-    lists:r[C.ls]?r[C.ls].split(',').map(t=>t.trim()).filter(Boolean):[],
-    _row:row
+    id:r.id, url:r.url||'', title:r.title, desc:r.description||'',
+    type:r.type||'article', prio:r.prio||'medium', time:r.time_min||null,
+    source:r.source||'', status:r.status||'unreviewed',
+    tags:r.tags||[], lists:r.lists||[], takeaways:r.takeaways||[],
+    saved:new Date(r.created_at).getTime(),
+    updated:new Date(r.updated_at||r.created_at).getTime(),
   };
 }
-function i2r(i) {
-  const ta=i.takeaways||[];
-  return [[i.id,i.profile,i.url,i.title,i.desc,i.type,i.prio,i.time||'',i.source,i.status,
-    (i.tags||[]).join(', '),i.saved,i.updated,ta[0]||'',ta[1]||'',ta[2]||'',(i.lists||[]).join(', ')]];
+
+function itemToDb(item){
+  return {
+    url:item.url, title:item.title, description:item.desc,
+    type:item.type, prio:item.prio, time_min:item.time||null,
+    source:item.source, status:item.status,
+    tags:item.tags||[], lists:item.lists||[], takeaways:item.takeaways||[],
+    user_id:S.user.id
+  };
 }
 
-// ── WRITE ─────────────────────────────────────────────────
-async function writeItem(item, isNew) {
+async function writeItem(item,isNew){
   sync('spin','Saving…');
-  try {
-    if (isNew) {
-      await sPost(`/values/${encodeURIComponent(SN+'!A:Q')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {values:i2r(item)});
-      const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
-      const rows = (d.values||[]).slice(1);
-      const idx = rows.findIndex(r=>r[0]===item.id);
-      if (idx>=0) item._row=idx+2;
-    } else {
-      if (!item._row) {
-        const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
-        const rows = (d.values||[]).slice(1);
-        const idx = rows.findIndex(r=>r[0]===item.id);
-        if (idx>=0) item._row=idx+2;
-      }
-      if (item._row) {
-        await sPut(`/values/${encodeURIComponent(SN+'!A'+item._row+':Q'+item._row)}?valueInputOption=RAW`, {values:i2r(item)});
-      }
-    }
-    sync('ok','Saved ✓');
-  } catch(e) { sync('err','Save failed: '+e.message); }
-}
-
-async function deleteFromSheet(item) {
-  sync('spin','Deleting…');
-  try {
-    if (!item._row) {
-      const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
-      const rows = (d.values||[]).slice(1);
-      const idx = rows.findIndex(r=>r[0]===item.id);
-      if (idx>=0) item._row=idx+2;
-    }
-    if (item._row) {
-      await sPost(`/values/${encodeURIComponent(SN+'!A'+item._row+':Q'+item._row)}:clear`, {});
-    }
-    sync('ok','Deleted ✓');
-  } catch(e) { sync('err','Delete failed: '+e.message); }
-}
-
-// ── LISTS ─────────────────────────────────────────────────
-async function createList() {
-  const name = document.getElementById('new-list-name').value.trim();
-  if (!name) return;
-  if (S.lists.find(l=>l.name.toLowerCase()===name.toLowerCase())) {
-    alert('A list with that name already exists.');
-    return;
+  if(isNew){
+    const {data,error}=await sb.from('items').insert(itemToDb(item)).select().single();
+    if(error){sync('err','Save failed: '+error.message);return;}
+    item.id=data.id;item.saved=new Date(data.created_at).getTime();
+    S.items=S.items.map(i=>i.id===item.id?item:i);
+  } else {
+    const {error}=await sb.from('items').update(itemToDb(item)).eq('id',item.id);
+    if(error){sync('err','Save failed: '+error.message);return;}
   }
-  const newList = {id:uid(), name, createdAt:Date.now()};
-  S.lists.push(newList);
-  document.getElementById('new-list-name').value = '';
-  renderListsManager();
-  renderTabs();
-  renderAddListChecks();
-  // Write to sheet
-  try {
-    await sPost(`/values/${encodeURIComponent(SL+'!A:C')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-      {values:[[newList.id,newList.name,newList.createdAt]]});
-    const d = await sGet(`/values/${encodeURIComponent(SL+'!A:A')}`);
-    const rows = (d.values||[]).slice(1);
-    const idx = rows.findIndex(r=>r[0]===newList.id);
-    if (idx>=0) newList._row=idx+2;
-  } catch(e) { sync('err','List save failed: '+e.message); }
+  sync('ok','Saved ✓');
+  renderTabs();renderList();
 }
 
-function openRenameList(listId) {
-  renamingListId = listId;
-  const l = S.lists.find(x=>x.id===listId);
-  if (!l) return;
-  document.getElementById('rename-inp').value = l.name;
+async function deleteFromDb(id){
+  sync('spin','Deleting…');
+  const {error}=await sb.from('items').delete().eq('id',id);
+  if(error){sync('err','Delete failed: '+error.message);return;}
+  sync('ok','Deleted ✓');
+}
+
+// ── LISTS DB ──────────────────────────────────────────────
+async function createList(){
+  const name=document.getElementById('new-list-name').value.trim();
+  if(!name)return;
+  if(S.lists.find(l=>l.name.toLowerCase()===name.toLowerCase())){alert('A list with that name already exists.');return;}
+  const {data,error}=await sb.from('lists').insert({name,user_id:S.user.id}).select().single();
+  if(error){alert('Could not create list: '+error.message);return;}
+  S.lists.push(data);
+  document.getElementById('new-list-name').value='';
+  renderLM();renderTabs();renderAddListChecks();
+}
+
+async function deleteList(id){
+  const l=S.lists.find(x=>x.id===id);if(!l)return;
+  if(!confirm(`Delete the list "${l.name}"? Items won't be deleted.`))return;
+  // Remove list name from all items
+  for(const item of S.items){
+    const idx=(item.lists||[]).indexOf(l.name);
+    if(idx>=0){item.lists.splice(idx,1);await writeItem(item,false);}
+  }
+  await sb.from('lists').delete().eq('id',id);
+  S.lists=S.lists.filter(x=>x.id!==id);
+  if(activeTab===l.name)activeTab='__all__';
+  renderLM();renderTabs();renderList();renderAddListChecks();
+}
+
+async function confirmRename(){
+  const newName=document.getElementById('rename-inp').value.trim();if(!newName)return;
+  const l=S.lists.find(x=>x.id===renamingId);if(!l)return;
+  const oldName=l.name;
+  await sb.from('lists').update({name:newName}).eq('id',l.id);
+  l.name=newName;
+  for(const item of S.items){
+    const idx=(item.lists||[]).indexOf(oldName);
+    if(idx>=0){item.lists[idx]=newName;await writeItem(item,false);}
+  }
+  if(activeTab===oldName)activeTab=newName;
+  cm('m-rename');renderLM();renderTabs();renderList();renderAddListChecks();
+}
+
+function openRename(id){
+  renamingId=id;
+  const l=S.lists.find(x=>x.id===id);if(!l)return;
+  document.getElementById('rename-inp').value=l.name;
   om('m-rename');
 }
 
-async function confirmRename() {
-  const newName = document.getElementById('rename-inp').value.trim();
-  if (!newName) return;
-  const l = S.lists.find(x=>x.id===renamingListId);
-  if (!l) return;
-  const oldName = l.name;
-  l.name = newName;
-  // Update items that reference old name
-  S.items.forEach(item=>{
-    const idx = (item.lists||[]).indexOf(oldName);
-    if (idx>=0) { item.lists[idx]=newName; writeItem(item,false); }
-  });
-  cm('m-rename');
-  renderTabs(); renderList(); renderListsManager(); renderAddListChecks();
-  // Update sheet
-  try {
-    if (l._row) await sPut(`/values/${encodeURIComponent(SL+'!B'+l._row)}?valueInputOption=RAW`,{values:[[newName]]});
-  } catch(e) { sync('err','Rename failed: '+e.message); }
-}
+// ── RENDER ────────────────────────────────────────────────
+let activeTab='__all__';
 
-async function deleteList(listId) {
-  const l = S.lists.find(x=>x.id===listId);
-  if (!l) return;
-  if (!confirm(`Delete the list "${l.name}"? Items won't be deleted, just removed from this list.`)) return;
-  S.lists = S.lists.filter(x=>x.id!==listId);
-  S.items.forEach(item=>{
-    const idx=(item.lists||[]).indexOf(l.name);
-    if(idx>=0){item.lists.splice(idx,1);writeItem(item,false);}
-  });
-  renderTabs(); renderList(); renderListsManager(); renderAddListChecks();
-  try {
-    if (l._row) await sPost(`/values/${encodeURIComponent(SL+'!A'+l._row+':C'+l._row)}:clear`,{});
-  } catch(e) { sync('err','Delete list failed: '+e.message); }
-}
-
-// ── SHARE ─────────────────────────────────────────────────
-function openShareList(listName) {
-  shareListName = listName;
-  document.getElementById('share-title').textContent = `Share "${listName}" list`;
-  document.getElementById('share-email').value = '';
-  buildEmailPreview(listName);
-  om('m-share');
-}
-
-function buildEmailPreview(listName) {
-  const items = S.items.filter(i=>i.profile===S.profile&&(i.lists||[]).includes(listName));
-  let text = `ReadQueue — "${listName}" list\n`;
-  text += `Shared by ${S.userName} · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}\n`;
-  text += '─'.repeat(60) + '\n\n';
-  if (!items.length) { text += '(No items in this list yet)'; }
-  else {
-    items.forEach((item,i)=>{
-      text += `${i+1}. ${item.title}\n`;
-      if (item.type) text += `   Type: ${TICO[item.type]||''} ${item.type}`;
-      if (item.time) text += `  ·  ~${item.time} min`;
-      if (item.source) text += `  ·  via ${item.source}`;
-      text += '\n';
-      if (item.desc) text += `   ${item.desc}\n`;
-      if (item.url)  text += `   ${item.url}\n`;
-      if (item.tags?.length) text += `   Tags: ${item.tags.join(', ')}\n`;
-      if (item.takeaways?.length) {
-        text += `   Key takeaways:\n`;
-        item.takeaways.forEach((t,j)=>{ if(t) text += `   ${j+1}. ${t}\n`; });
-      }
-      text += '\n';
-    });
-  }
-  document.getElementById('email-preview').textContent = text;
-  return text;
-}
-
-function openEmail() {
-  const to = document.getElementById('share-email').value.trim();
-  const text = document.getElementById('email-preview').textContent;
-  const subject = encodeURIComponent(`ReadQueue — "${shareListName}" list`);
-  const body = encodeURIComponent(text);
-  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${subject}&body=${body}`;
-}
-
-// ── RENDER TABS ───────────────────────────────────────────
-let activeTab = '__all__';
-function renderTabs() {
-  const wrap = document.getElementById('list-tabs');
-  const allCount = S.items.filter(i=>i.profile===S.profile).length;
-  let html = `<button class="ltab ${activeTab==='__all__'?'active':''}" onclick="setTab('__all__')">All <span class="lcount">${allCount}</span></button>`;
+function renderTabs(){
+  const wrap=document.getElementById('list-tabs');
+  const allCnt=S.items.length;
+  let html=`<button class="ltab ${activeTab==='__all__'?'active':''}" onclick="setTab('__all__')">All <span class="lcount">${allCnt}</span></button>`;
   S.lists.forEach(l=>{
-    const cnt = S.items.filter(i=>i.profile===S.profile&&(i.lists||[]).includes(l.name)).length;
-    html += `<button class="ltab ${activeTab===l.name?'active':''}" onclick="setTab('${esc(l.name)}')">${esc(l.name)} <span class="lcount">${cnt}</span></button>`;
+    const cnt=S.items.filter(i=>(i.lists||[]).includes(l.name)).length;
+    html+=`<button class="ltab ${activeTab===l.name?'active':''}" onclick="setTab('${esc(l.name)}')">${esc(l.name)} <span class="lcount">${cnt}</span></button>`;
   });
-  html += `<button class="ltab-new" onclick="openListsManager()">+ New list</button>`;
-  // Share button for active list
-  if (activeTab !== '__all__') {
-    html += `<button class="btn btn-sm btn-pu" style="margin-left:auto" onclick="openShareList('${esc(activeTab)}')">✉ Share list</button>`;
+  html+=`<button class="ltab-new" onclick="openListsManager()">+ New list</button>`;
+  if(activeTab!=='__all__'){
+    html+=`<button class="btn btn-sm btn-pu" style="margin-left:auto" onclick="openShareList('${esc(activeTab)}')">✉ Share list</button>`;
   }
-  wrap.innerHTML = html;
+  wrap.innerHTML=html;
 }
 
-function setTab(name) {
-  activeTab = name;
-  // Update empty state messaging
-  if (name !== '__all__') {
-    document.getElementById('empty-h').textContent = `No items in "${name}" yet`;
-    document.getElementById('empty-p').textContent = 'Add items to your queue and assign them to this list.';
-  } else {
-    document.getElementById('empty-h').textContent = 'Your queue is clear';
-    document.getElementById('empty-p').textContent = 'Add articles, podcasts, videos, and PDFs you want to revisit and reflect on.';
-  }
-  renderTabs();
-  renderList();
+function setTab(name){
+  activeTab=name;
+  document.getElementById('empty-h').textContent=name==='__all__'?'Your queue is clear':`No items in "${name}" yet`;
+  document.getElementById('empty-p').textContent=name==='__all__'?'Add articles, podcasts, videos, and PDFs you want to revisit.':'Add items to your queue and assign them to this list.';
+  renderTabs();renderList();
 }
 
-// ── RENDER LIST MANAGER ───────────────────────────────────
-function renderListsManager() {
-  const wrap = document.getElementById('lists-manager-rows');
-  if (!S.lists.length) { wrap.innerHTML = '<p style="font-size:.82rem;color:var(--text3);padding:.5rem 0">No lists yet. Create one above.</p>'; return; }
-  wrap.innerHTML = S.lists.map(l=>{
-    const cnt = S.items.filter(i=>(i.lists||[]).includes(l.name)).length;
-    return `<div class="list-manager-row">
-      <span class="lm-name">${esc(l.name)}</span>
-      <span class="lm-count">${cnt} item${cnt!==1?'s':''}</span>
-      <button class="btn btn-sm btn-gh" onclick="openRenameList('${l.id}')">Rename</button>
-      <button class="btn btn-sm btn-pu" onclick="openShareList('${esc(l.name)}');cm('m-lists')">✉ Share</button>
-      <button class="btn btn-sm btn-d" onclick="deleteList('${l.id}')">Delete</button>
-    </div>`;
-  }).join('');
-}
-
-function openListsManager() {
-  renderListsManager();
-  om('m-lists');
-}
-
-// ── RENDER ADD/EDIT LIST CHECKBOXES ──────────────────────
-function renderAddListChecks() {
-  const wrap = document.getElementById('list-checks-add');
-  if (!S.lists.length) { wrap.innerHTML = '<span class="hint">No lists yet — create one via ⊞ Lists in the header.</span>'; return; }
-  wrap.innerHTML = S.lists.map(l=>`
-    <label class="lcheck ${clists.includes(l.name)?'on':''}" onclick="toggleListCheck('${esc(l.name)}',this)">
-      <input type="checkbox" ${clists.includes(l.name)?'checked':''}/>
-      ${esc(l.name)}
-    </label>`).join('');
-}
-function toggleListCheck(name, el) {
-  const idx = clists.indexOf(name);
-  if (idx>=0) { clists.splice(idx,1); el.classList.remove('on'); }
-  else { clists.push(name); el.classList.add('on'); }
-}
-
-// ── RENDER MAIN LIST ─────────────────────────────────────
-function renderList() {
-  const prof=S.profile;
+function renderList(){
   const q=document.getElementById('search-inp').value.toLowerCase();
   const fs=document.getElementById('f-status').value;
   const ft=document.getElementById('f-type').value;
@@ -951,50 +656,48 @@ function renderList() {
   const fg=document.getElementById('f-tag').value;
   const so=document.getElementById('f-sort').value;
 
-  let items=S.items.filter(i=>i.profile===prof&&i.id);
-  // Tab filter
-  if (activeTab!=='__all__') items=items.filter(i=>(i.lists||[]).includes(activeTab));
+  let items=[...S.items];
+  if(activeTab!=='__all__')items=items.filter(i=>(i.lists||[]).includes(activeTab));
   if(q)items=items.filter(i=>i.title.toLowerCase().includes(q)||(i.desc||'').toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q)));
   if(fs)items=items.filter(i=>i.status===fs);
   if(ft)items=items.filter(i=>i.type===ft);
   if(fp)items=items.filter(i=>i.prio===fp);
   if(fg)items=items.filter(i=>(i.tags||[]).includes(fg));
-  if(so==='saved_desc')items.sort((a,b)=>b.saved-a.saved);
-  else if(so==='saved_asc')items.sort((a,b)=>a.saved-b.saved);
+  if(so==='newest')items.sort((a,b)=>b.saved-a.saved);
+  else if(so==='oldest')items.sort((a,b)=>a.saved-b.saved);
   else if(so==='prio')items.sort((a,b)=>PO[a.prio||'medium']-PO[b.prio||'medium']);
   else if(so==='title')items.sort((a,b)=>a.title.localeCompare(b.title));
   else if(so==='time')items.sort((a,b)=>(a.time||999)-(b.time||999));
 
-  const all=S.items.filter(i=>i.profile===prof&&i.id);
-  const ur=all.filter(i=>i.status==='unreviewed').length;
-  const ip=all.filter(i=>i.status==='in-progress').length;
-  const rv=all.filter(i=>i.status==='reviewed').length;
+  const ur=S.items.filter(i=>i.status==='unreviewed').length;
+  const ip=S.items.filter(i=>i.status==='in-progress').length;
+  const rv=S.items.filter(i=>i.status==='reviewed').length;
   const sp=document.getElementById('spill');
   const bar=document.getElementById('sbar');
   bar.innerHTML=`<span class="stat"><span class="sdot" style="background:var(--amber)"></span>${ur} unreviewed</span><span class="stat"><span class="sdot" style="background:var(--blue)"></span>${ip} in progress</span><span class="stat"><span class="sdot" style="background:var(--accent)"></span>${rv} reviewed</span><span class="stat">${items.length} shown</span>`;
   if(sp)bar.appendChild(sp);
 
-  const allTags=[...new Set(S.items.filter(i=>i.profile===prof).flatMap(i=>i.tags||[]))].sort();
-  const tsel=document.getElementById('f-tag');const ctag=tsel.value;
-  tsel.innerHTML='<option value="">All tags</option>'+allTags.map(t=>`<option value="${esc(t)}"${t===ctag?' selected':''}>${esc(t)}</option>`).join('');
+  const allTags=[...new Set(S.items.flatMap(i=>i.tags||[]))].sort();
+  const tsel=document.getElementById('f-tag');const curTag=tsel.value;
+  tsel.innerHTML='<option value="">All tags</option>'+allTags.map(t=>`<option value="${esc(t)}"${t===curTag?' selected':''}>${esc(t)}</option>`).join('');
 
   const cl=document.getElementById('clist');
   document.getElementById('empty').style.display=items.length?'none':'block';
   cl.style.display=items.length?'':'none';
 
   cl.innerHTML=items.map(item=>{
-    const sb={unreviewed:`<span class="badge bu">● Unreviewed</span>`,'in-progress':`<span class="badge bi">◑ In progress</span>`,reviewed:`<span class="badge br">✓ Reviewed</span>`}[item.status]||'';
+    const sb2={unreviewed:`<span class="badge bu">● Unreviewed</span>`,'in-progress':`<span class="badge bi">◑ In progress</span>`,reviewed:`<span class="badge br">✓ Reviewed</span>`}[item.status]||'';
     const pe=item.prio==='high'?`<span class="ph">↑ High</span>`:item.prio==='low'?`<span class="pl">Low</span>`:`<span class="pm">Med</span>`;
     const tags=(item.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
-    const lists=(item.lists||[]).map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');
+    const lists2=(item.lists||[]).map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');
     const meta=[
-      sb,
+      sb2,
       `<span class="tbadge">${TICO[item.type]||'📎'} ${esc(item.type||'other')}</span>`,
       pe,
-      item.time?`<span class="sep">·</span><span>${item.time} min`:'',
+      item.time?`<span class="sep">·</span><span>${item.time} min</span>`:'',
       item.source?`<span class="sep">·</span><span>via ${esc(item.source)}</span>`:'',
       `<span class="sep">·</span><span>${fd(item.saved)}</span>`,
-      lists?`<span class="sep">·</span>${lists}`:'',
+      lists2?`<span class="sep">·</span>${lists2}`:'',
     ].filter(Boolean).join('');
     return `<div class="icard" onclick="openDetail('${item.id}')">
       <div class="cmeta">${meta}</div>
@@ -1013,13 +716,39 @@ function renderList() {
   }).join('');
 }
 
+function renderLM(){
+  const wrap=document.getElementById('lm-rows');
+  if(!S.lists.length){wrap.innerHTML='<p style="font-size:.82rem;color:var(--text3);padding:.5rem 0">No lists yet.</p>';return;}
+  wrap.innerHTML=S.lists.map(l=>{
+    const cnt=S.items.filter(i=>(i.lists||[]).includes(l.name)).length;
+    return `<div class="lmrow">
+      <span class="lmname">${esc(l.name)}</span>
+      <span class="lmcount">${cnt} item${cnt!==1?'s':''}</span>
+      <button class="btn btn-sm btn-gh" onclick="openRename('${l.id}')">Rename</button>
+      <button class="btn btn-sm btn-pu" onclick="openShareList('${esc(l.name)}');cm('m-lists')">✉ Share</button>
+      <button class="btn btn-sm btn-d" onclick="deleteList('${l.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+
+function renderAddListChecks(){
+  const wrap=document.getElementById('list-checks-add');
+  if(!S.lists.length){wrap.innerHTML='<span class="hint">No lists yet — create one via ⊞ Lists.</span>';return;}
+  wrap.innerHTML=S.lists.map(l=>`
+    <label class="lcheck ${clists.includes(l.name)?'on':''}" onclick="toggleLC('${esc(l.name)}',this)">
+      <input type="checkbox" ${clists.includes(l.name)?'checked':''}/>
+      ${esc(l.name)}
+    </label>`).join('');
+}
+function toggleLC(name,el){const idx=clists.indexOf(name);if(idx>=0){clists.splice(idx,1);el.classList.remove('on');}else{clists.push(name);el.classList.add('on');}}
+
 // ── ADD / EDIT ────────────────────────────────────────────
-function openAddModal() {
+function openAddModal(){
   eid=null;ctags=[];clists=activeTab!=='__all__'?[activeTab]:[];
   document.getElementById('m-ttl').textContent='Add to queue';
   cf();renderAddListChecks();om('m-add');
 }
-function openEdit(id) {
+function openEdit(id){
   const it=S.items.find(i=>i.id===id);if(!it)return;
   eid=id;ctags=[...(it.tags||[])];clists=[...(it.lists||[])];
   document.getElementById('m-ttl').textContent='Edit item';
@@ -1034,7 +763,7 @@ function openEdit(id) {
   document.getElementById('ai-wrap').style.display='none';
   rtc();renderAddListChecks();om('m-add');
 }
-function cf() {
+function cf(){
   ['f-url','f-title','f-desc','f-time','f-src'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-type-inp').value='article';
   document.getElementById('f-prio-inp').value='medium';
@@ -1042,13 +771,14 @@ function cf() {
   document.getElementById('ai-wrap').style.display='none';
   ctags=[];rtc();
 }
-async function saveItem() {
+async function saveItem(){
   const title=document.getElementById('f-title').value.trim();
   if(!title){document.getElementById('f-title').focus();return;}
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Saving…';
-  const now=Date.now();const ex=eid?S.items.find(i=>i.id===eid):null;
+  const now=Date.now();
+  const ex=eid?S.items.find(i=>i.id===eid):null;
   const item={
-    id:eid||uid(),profile:S.profile,
+    id:eid||null,
     url:document.getElementById('f-url').value.trim(),title,
     desc:document.getElementById('f-desc').value.trim(),
     type:document.getElementById('f-type-inp').value,
@@ -1057,32 +787,33 @@ async function saveItem() {
     source:document.getElementById('f-src').value.trim(),
     status:document.getElementById('f-status-inp').value,
     tags:[...ctags],lists:[...clists],
+    takeaways:ex?(ex.takeaways||[]):[],
     saved:ex?ex.saved:now,updated:now,
-    takeaways:ex?(ex.takeaways||[]):[],_row:ex?ex._row:null
   };
-  if(eid)S.items=S.items.map(i=>i.id===eid?item:i);else S.items.unshift(item);
-  renderTabs();renderList();cm('m-add');
-  btn.disabled=false;btn.textContent='Save to queue';
-  await writeItem(item,!eid);
+  const isNew=!eid;
+  if(isNew)S.items.unshift(item);
+  else S.items=S.items.map(i=>i.id===eid?item:i);
+  cm('m-add');btn.disabled=false;btn.textContent='Save to queue';
+  await writeItem(item,isNew);
   if(did===eid)openDetail(eid);
 }
-async function delCard(id) {
+async function delCard(id){
   if(!confirm('Remove this item?'))return;
-  const it=S.items.find(i=>i.id===id);
   S.items=S.items.filter(i=>i.id!==id);
-  renderTabs();renderList();if(did===id)closeDetail();
-  if(it)await deleteFromSheet(it);
+  renderTabs();renderList();
+  if(did===id)closeDetail();
+  await deleteFromDb(id);
 }
 
 // ── AI ────────────────────────────────────────────────────
 function urlChanged(){const url=document.getElementById('f-url').value.trim();if(!url.startsWith('http'))return;clearTimeout(utmr);utmr=setTimeout(()=>aiTag(url),900);}
 async function aiTag(url){
-  if(!S.ak)return;
+  if(!getAK())return;
   const w=document.getElementById('ai-wrap'),b=document.getElementById('aibar'),t=document.getElementById('aitxt');
   w.style.display='block';b.className='aibar';t.textContent='Analysing with Claude…';
   try{
     const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':S.ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':getAK(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`Analyze this URL and return ONLY valid JSON (no markdown):
 URL: ${url}
 {"title":"concise title","desc":"2-sentence description","type":"article|podcast|video|pdf|substack|journal|other","tags":["tag1","tag2"],"time":minutes_integer}
@@ -1111,24 +842,23 @@ function openDetail(id){
   const pl={high:'↑ High priority',medium:'Medium priority',low:'Low priority'}[it.prio||'medium'];
   document.getElementById('dp-meta').innerHTML=[
     `<span>${TICO[it.type]||'📎'} ${esc(it.type)}</span>`,`<span>${pl}</span>`,
-    it.time?`<span>~${it.time} min</span>`:'',it.source?`<span>via ${esc(it.source)}</span>`:'',
-    `<span>Saved ${fd(it.saved)}</span>`].filter(Boolean).join('<span style="opacity:.3;padding:0 2px">·</span>');
+    it.time?`<span>~${it.time} min</span>`:'',
+    it.source?`<span>via ${esc(it.source)}</span>`:'',
+    `<span>Saved ${fd(it.saved)}</span>`
+  ].filter(Boolean).join('<span style="opacity:.3;padding:0 2px">·</span>');
   document.getElementById('dp-desc').textContent=it.desc||'No description.';
   document.getElementById('dp-sbtns').innerHTML=['unreviewed','in-progress','reviewed'].map(s=>
     `<button class="btn btn-sm ${it.status===s?'btn-p':''}" onclick="setSt('${s}')">${SLL[s]}</button>`).join('');
   rta(it);
   document.getElementById('dp-tags').innerHTML=(it.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
-  const dpLists = document.getElementById('dp-lists');
-  if ((it.lists||[]).length) {
-    dpLists.innerHTML=(it.lists).map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');
-    document.getElementById('dp-lists-wrap').style.display='';
-  } else {
-    document.getElementById('dp-lists-wrap').style.display='none';
-  }
+  const dlists=document.getElementById('dp-lists');
+  if((it.lists||[]).length){dlists.innerHTML=it.lists.map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');document.getElementById('dp-lists-wrap').style.display='';}
+  else{document.getElementById('dp-lists-wrap').style.display='none';}
   document.getElementById('dp-acts').innerHTML=[
     it.url?`<a class="lbtn" href="${esc(it.url)}" target="_blank">↗ Open original</a>`:'',
     `<button class="btn btn-sm" onclick="openEdit('${id}')">✏ Edit</button>`,
-    `<button class="btn btn-sm btn-d" onclick="delCard('${id}')">🗑 Delete</button>`].filter(Boolean).join('');
+    `<button class="btn btn-sm btn-d" onclick="delCard('${id}')">🗑 Delete</button>`
+  ].filter(Boolean).join('');
   const o=document.getElementById('d-ov');o.style.display='flex';requestAnimationFrame(()=>o.classList.add('open'));
 }
 function closeDetail(){const o=document.getElementById('d-ov');o.classList.remove('open');setTimeout(()=>o.style.display='none',250);did=null;}
@@ -1140,30 +870,46 @@ function rta(it){
   list.querySelectorAll('textarea').forEach(ar);
 }
 function ar(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
-async function addTakeaway(){const it=S.items.find(i=>i.id===did);if(!it||(it.takeaways||[]).length>=3)return;it.takeaways=[...(it.takeaways||[]),''];it.updated=Date.now();rta(it);}
+async function addTakeaway(){const it=S.items.find(i=>i.id===did);if(!it||(it.takeaways||[]).length>=3)return;it.takeaways=[...(it.takeaways||[]),''];rta(it);}
 async function svta(idx,val){const it=S.items.find(i=>i.id===did);if(!it)return;it.takeaways[idx]=val;it.updated=Date.now();await writeItem(it,false);}
 async function rmta(idx){const it=S.items.find(i=>i.id===did);if(!it)return;it.takeaways.splice(idx,1);it.updated=Date.now();rta(it);await writeItem(it,false);}
 
-// ── PROFILE ──────────────────────────────────────────────
-function switchProfile(p){S.profile=p;svl();document.getElementById('p-me').classList.toggle('active',p==='me');document.getElementById('p-pt').classList.toggle('active',p==='partner');if(did)closeDetail();activeTab='__all__';renderTabs();renderList();upl();}
-function upl(){document.getElementById('p-me').textContent=S.names?.me||'Me';document.getElementById('p-pt').textContent=S.names?.partner||'Partner';}
+// ── SHARE ─────────────────────────────────────────────────
+function openShareList(name){
+  shareListName=name;
+  document.getElementById('share-title').textContent=`Share "${name}" list`;
+  document.getElementById('share-email').value='';
+  buildPreview(name);
+  om('m-share');
+}
+function buildPreview(name){
+  const items=S.items.filter(i=>(i.lists||[]).includes(name));
+  let text=`ReadQueue — "${name}" list\nShared ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}\n${'─'.repeat(60)}\n\n`;
+  if(!items.length){text+='(No items in this list yet)';}
+  else items.forEach((item,i)=>{
+    text+=`${i+1}. ${item.title}\n`;
+    if(item.type)text+=`   ${TICO[item.type]||''} ${item.type}`;
+    if(item.time)text+=`  ·  ~${item.time} min`;
+    if(item.source)text+=`  ·  via ${item.source}`;
+    text+='\n';
+    if(item.desc)text+=`   ${item.desc}\n`;
+    if(item.url)text+=`   ${item.url}\n`;
+    if(item.tags?.length)text+=`   Tags: ${item.tags.join(', ')}\n`;
+    if(item.takeaways?.filter(Boolean).length){text+=`   Takeaways:\n`;item.takeaways.filter(Boolean).forEach((t,j)=>{text+=`   ${j+1}. ${t}\n`;});}
+    text+='\n';
+  });
+  document.getElementById('email-preview').textContent=text;
+}
+function openEmail(){
+  const to=document.getElementById('share-email').value.trim();
+  const text=document.getElementById('email-preview').textContent;
+  window.location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(`ReadQueue — "${shareListName}" list`)}&body=${encodeURIComponent(text)}`;
+}
 
 // ── SETTINGS ─────────────────────────────────────────────
-function openSettings(){
-  document.getElementById('s-ant').value=S.ak||'';
-  document.getElementById('s-nm').value=S.names?.me||'';
-  document.getElementById('s-np').value=S.names?.partner||'';
-  document.getElementById('s-email').textContent=S.userEmail;
-  document.getElementById('s-sheetid').textContent=S.sheetId||'(none)';
-  om('m-set');
-}
-function saveSettings(){S.ak=document.getElementById('s-ant').value.trim();S.names={me:document.getElementById('s-nm').value.trim()||'Me',partner:document.getElementById('s-np').value.trim()||'Partner'};svl();upl();cm('m-set');}
-function disconnectSheet(){
-  if(!confirm('Disconnect the current sheet? You\'ll be asked to pick a sheet again on next load.'))return;
-  S.sheetId=null;svl();cm('m-set');
-  document.getElementById('app').style.display='none';
-  document.getElementById('connect-screen').classList.add('show');
-}
+function openSettings(){document.getElementById('s-ant').value=getAK();document.getElementById('s-email').textContent=S.user?.email||'';om('m-set');}
+function saveSettings(){setAK(document.getElementById('s-ant').value.trim());cm('m-set');const b=document.getElementById('ak-banner');if(b)b.remove();}
+function openListsManager(){renderLM();om('m-lists');}
 
 // ── MODALS ────────────────────────────────────────────────
 function om(id){const e=document.getElementById(id);e.style.display='flex';requestAnimationFrame(()=>e.classList.add('open'));}
@@ -1177,11 +923,21 @@ document.addEventListener('keydown',e=>{
 });
 
 // ── HELPERS ──────────────────────────────────────────────
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fd(ts){if(!ts)return'—';const d=new Date(ts),n=new Date(),df=(n-d)/864e5;if(df<1)return'Today';if(df<2)return'Yesterday';if(df<7)return Math.floor(df)+'d ago';return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setSbar(html){document.getElementById('sbar').innerHTML=html;}
 function sync(state,msg){const bar=document.getElementById('sbar');const ex=document.getElementById('spill');if(ex)ex.remove();const p=document.createElement('span');p.id='spill';p.className='sync';p.innerHTML=`<span class="syncdot ${state==='spin'?'spinning':state==='err'?'err':''}"></span>${esc(msg)}`;bar.appendChild(p);}
+
+// ── BOOT ─────────────────────────────────────────────────
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user){await bootApp(session.user);}
+  // else stay on sign-in screen
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user&&!S.user)await bootApp(session.user);
+    if(event==='SIGNED_OUT'){S={items:[],lists:[],user:null};showScreen('screen-signin');}
+  });
+})();
 </script>
 </body>
 </html>
