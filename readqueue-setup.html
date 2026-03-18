@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReadQueue — Quick Add Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F5F0;--surface:#FFF;--surface2:#F0EDE6;
+  --border:#E2DDD4;--border2:#C8C2B8;
+  --text:#1A1714;--text2:#6B6560;--text3:#9E9890;
+  --accent:#2A5C45;--accent-light:#E8F2EC;--accent-text:#1A3D2E;
+  --amber:#B85C00;--amber-light:#FFF3E0;
+  --blue:#1A4A7A;--blue-light:#EAF2FF;
+  --red:#8B1F1F;--red-light:#FDEAEA;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',-apple-system,sans-serif;
+  --fm:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;padding:2rem 1rem 4rem;}
+.wrap{max-width:680px;margin:0 auto;}
+.logo{font-family:var(--fd);font-size:1.5rem;font-weight:700;margin-bottom:.25rem;}
+.logo span{color:var(--accent);font-style:italic;}
+.subtitle{font-size:.9rem;color:var(--text2);margin-bottom:2.5rem;}
+
+/* STEPS */
+.phase{margin-bottom:2.5rem;}
+.phase-label{font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:.5rem;}
+.phase-title{font-family:var(--fd);font-size:1.3rem;font-style:italic;margin-bottom:1rem;color:var(--text);}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.4rem;margin-bottom:.75rem;display:flex;gap:1rem;align-items:flex-start;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-body{flex:1;}
+.step h3{font-size:.92rem;font-weight:500;margin-bottom:.4rem;}
+.step p{font-size:.84rem;color:var(--text2);margin-bottom:.6rem;line-height:1.6;}
+.step p:last-child{margin-bottom:0;}
+.step a{color:var(--accent);}
+code{font-family:var(--fm);font-size:.8rem;background:var(--surface2);padding:.1rem .35rem;border-radius:4px;color:var(--text);}
+.code-block{font-family:var(--fm);font-size:.78rem;background:#1A1714;color:#E8F2EC;padding:1rem 1.25rem;border-radius:8px;margin:.6rem 0;overflow-x:auto;white-space:pre;line-height:1.6;}
+.copy-wrap{position:relative;}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:5px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer;font-family:var(--fb);transition:background .15s;}
+.copy-btn:hover{background:rgba(255,255,255,.2);}
+.copy-btn.copied{background:var(--accent);border-color:var(--accent);}
+
+/* BOOKMARKLET BUTTON */
+.bm-target{background:var(--accent);color:#fff;padding:.55rem 1.1rem;border-radius:7px;font-family:var(--fb);font-size:.85rem;font-weight:500;text-decoration:none;display:inline-block;cursor:grab;border:2px dashed rgba(255,255,255,.4);transition:opacity .15s;}
+.bm-target:hover{opacity:.9;}
+.bm-instruction{font-size:.8rem;color:var(--text3);margin-top:.5rem;display:flex;align-items:center;gap:6px;}
+.bm-instruction::before{content:'☝';font-size:1rem;}
+
+/* WORKER CONFIG */
+.config-row{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem;}
+.config-row label{font-size:.75rem;font-weight:500;color:var(--text2);}
+.config-row input{padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-family:var(--fm);font-size:.82rem;background:var(--surface);color:var(--text);width:100%;}
+.config-row input:focus{outline:none;border-color:var(--accent);}
+.gen-btn{background:var(--accent);color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;font-family:var(--fb);font-size:.84rem;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.gen-btn:hover{opacity:.9;}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* SHORTCUT CARD */
+.shortcut-card{background:linear-gradient(135deg,#1A4A7A 0%,#2A5C45 100%);border-radius:12px;padding:1.5rem;color:#fff;margin:.6rem 0;}
+.shortcut-card h3{font-size:1rem;font-weight:500;margin-bottom:.35rem;}
+.shortcut-card p{font-size:.82rem;opacity:.8;margin-bottom:1rem;line-height:1.5;}
+.shortcut-link{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.5rem 1rem;border-radius:7px;font-size:.84rem;font-weight:500;text-decoration:none;transition:background .15s;}
+.shortcut-link:hover{background:rgba(255,255,255,.25);}
+
+/* STATUS BADGE */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:500;}
+.badge-done{background:var(--accent-light);color:var(--accent-text);}
+.badge-req{background:var(--amber-light);color:var(--amber);}
+
+/* TEST */
+.test-area{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.4rem;}
+.test-row{display:flex;gap:8px;margin-bottom:.75rem;}
+.test-inp{flex:1;padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-family:var(--fb);font-size:.84rem;background:var(--bg);color:var(--text);}
+.test-inp:focus{outline:none;border-color:var(--accent);}
+.test-result{font-size:.82rem;padding:.6rem .8rem;border-radius:6px;display:none;}
+.test-result.ok{background:var(--accent-light);color:var(--accent-text);display:block;}
+.test-result.err{background:var(--red-light);color:var(--red);display:block;}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+.note{background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:var(--blue);margin:.6rem 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Read<span>Queue</span> — Quick Add Setup</div>
+  <div class="subtitle">Set up one-click saving from your browser and iOS share sheet.</div>
+
+  <!-- ── PHASE 1: CLOUDFLARE WORKER ── -->
+  <div class="phase">
+    <div class="phase-label">Phase 1 of 3</div>
+    <div class="phase-title">Deploy your backend endpoint</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Create a free Cloudflare account</h3>
+        <p>Go to <a href="https://dash.cloudflare.com/sign-up" target="_blank">dash.cloudflare.com/sign-up</a> and create a free account. No credit card needed. The free tier supports 100,000 requests/day — more than enough.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Create a new Worker</h3>
+        <p>In the Cloudflare dashboard: click <strong>Workers & Pages</strong> in the left sidebar → <strong>Create</strong> → <strong>Create Worker</strong> → name it <code>readqueue</code> → click <strong>Deploy</strong>.</p>
+        <p>You'll land on an editor page. Click <strong>Edit code</strong>, then replace ALL the default code with the code below.</p>
+        <div class="copy-wrap">
+          <pre class="code-block" id="worker-code">/* paste generated worker code here — fill in your details below first */</pre>
+          <button class="copy-btn" onclick="copyCode('worker-code',this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Fill in your details to generate the Worker code</h3>
+        <p>Enter your keys below and click Generate — this produces the exact code to paste into Cloudflare.</p>
+        <div class="config-row"><label>Anthropic API Key</label><input type="text" id="cfg-ant" placeholder="sk-ant-…"/></div>
+        <div class="config-row"><label>Google API Key</label><input type="text" id="cfg-gk" placeholder="AIzaSyAlsOop5T1K8O-rkUtk5w_swaMENP2Oz_o" value="AIzaSyAlsOop5T1K8O-rkUtk5w_swaMENP2Oz_o"/></div>
+        <div class="config-row"><label>Google Sheet ID</label><input type="text" id="cfg-sid" placeholder="1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk" value="1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk"/></div>
+        <div class="config-row"><label>Worker Secret <span style="font-size:.71rem;color:var(--text3)">(make up any random string — you'll need it below)</span></label><input type="text" id="cfg-secret" placeholder="e.g. rq-secret-abc123"/></div>
+        <button class="gen-btn" onclick="generateWorker()">Generate Worker code</button>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Deploy and note your Worker URL</h3>
+        <p>After pasting the code, click <strong>Deploy</strong> (top right). Your Worker URL will appear at the top — it looks like <code>https://readqueue.YOUR-SUBDOMAIN.workers.dev</code>. Copy it and paste it below.</p>
+        <div class="config-row"><label>Your Worker URL</label><input type="text" id="cfg-wurl" placeholder="https://readqueue.your-subdomain.workers.dev" oninput="onWorkerUrlChange()"/></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>Make sure your Google Sheet allows API writes</h3>
+        <p>Your Sheet sharing must be set to <strong>"Anyone with the link — Editor"</strong> for the Worker to write to it (the Worker uses the API key, not your login). This is separate from the ReadQueue app itself, which uses your Google login.</p>
+        <p>Open your <a href="https://sheets.google.com" target="_blank">ReadQueue Google Sheet</a> → Share → change to "Anyone with the link" → Editor.</p>
+        <div class="note">Your ReadQueue app login is still protected — only authorised Google accounts can open the app. The Sheet API key just allows the Worker (running on your server) to append rows.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ── PHASE 2: BOOKMARKLET ── -->
+  <div class="phase">
+    <div class="phase-label">Phase 2 of 3</div>
+    <div class="phase-title">Install the browser bookmarklet</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Show your bookmarks bar</h3>
+        <p>In Chrome: <kbd>Ctrl/Cmd + Shift + B</kbd>. In Safari: View → Show Favorites Bar.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Drag this button to your bookmarks bar</h3>
+        <p>Click and drag the button below up into your browser's bookmarks bar. That's it — it's installed.</p>
+        <a id="bookmarklet-link" href="#" class="bm-target" onclick="return false">📚 Save to ReadQueue</a>
+        <div class="bm-instruction">Drag this button to your bookmarks bar</div>
+        <p style="margin-top:.75rem">On mobile Safari: tap the share icon → Add Bookmark → name it "Save to ReadQueue". Then find it in your bookmarks when you want to save a page.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Test it</h3>
+        <p>Navigate to any article, click the bookmarklet. A small toast notification will appear confirming the item was added to your ReadQueue.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ── PHASE 3: IOS SHORTCUT ── -->
+  <div class="phase">
+    <div class="phase-label">Phase 3 of 3</div>
+    <div class="phase-title">Install the iOS Share Sheet shortcut</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Download the Shortcut</h3>
+        <p>On your iPhone or iPad, tap the button below. It will open the Shortcuts app and ask you to add the shortcut. Tap <strong>Add Shortcut</strong>.</p>
+        <div class="shortcut-card">
+          <h3>ReadQueue — Save to Queue</h3>
+          <p>Adds the current page to your ReadQueue via the iOS share sheet. Works in Safari, Chrome, and any app that shares URLs.</p>
+          <a id="shortcut-link" href="#" class="shortcut-link">📱 Add to Shortcuts</a>
+        </div>
+        <p>If the Shortcut link isn't working yet (it needs your Worker URL above), you can also create it manually — see step 3 below.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Add it to your Share Sheet</h3>
+        <p>After adding the shortcut: open Safari, tap the Share button → scroll down → tap <strong>Edit Actions</strong> → find "ReadQueue" → tap the <strong>+</strong> to add it. It will now appear every time you share a URL.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Or create it manually (if the link doesn't work)</h3>
+        <p>Open the Shortcuts app → tap <strong>+</strong> → <strong>Add Action</strong> → search for <strong>"Get URLs from Input"</strong> → add it. Then add a second action: search <strong>"Get Contents of URL"</strong> → set Method to <strong>POST</strong> → URL to your Worker URL → add headers:</p>
+        <div class="code-block" id="shortcut-manual">URL: [your worker URL]
+Method: POST
+Headers:
+  Content-Type: application/json
+  X-Worker-Secret: [your worker secret]
+Body (JSON):
+  {
+    "url": [Shortcut Input],
+    "title": ""
+  }</div>
+        <p style="margin-top:.5rem">Set the shortcut to receive <strong>Safari web pages</strong> as input so it appears in the share sheet.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ── TEST ── -->
+  <div class="phase">
+    <div class="phase-label">Test your setup</div>
+    <div class="phase-title">Send a test URL to your queue</div>
+    <div class="test-area">
+      <p style="font-size:.84rem;color:var(--text2);margin-bottom:.9rem">Paste any URL below and click Send — if everything is set up correctly, it will appear in your ReadQueue within a few seconds.</p>
+      <div class="test-row">
+        <input class="test-inp" type="url" id="test-url" placeholder="https://example.com/article"/>
+        <button class="gen-btn" onclick="testEndpoint()">Send test</button>
+      </div>
+      <div class="test-result" id="test-result"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Pre-fill known values
+document.getElementById('cfg-gk').value  = 'AIzaSyAlsOop5T1K8O-rkUtk5w_swaMENP2Oz_o';
+document.getElementById('cfg-sid').value = '1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk';
+
+// Restore from localStorage
+const saved = JSON.parse(localStorage.getItem('rq_setup')||'{}');
+if (saved.ant) document.getElementById('cfg-ant').value = saved.ant;
+if (saved.secret) document.getElementById('cfg-secret').value = saved.secret;
+if (saved.wurl) { document.getElementById('cfg-wurl').value = saved.wurl; updateBookmarklet(saved.wurl, saved.secret); updateShortcutLink(saved.wurl, saved.secret); }
+
+function saveSetup() {
+  localStorage.setItem('rq_setup', JSON.stringify({
+    ant:    document.getElementById('cfg-ant').value,
+    secret: document.getElementById('cfg-secret').value,
+    wurl:   document.getElementById('cfg-wurl').value,
+  }));
+}
+
+function generateWorker() {
+  const ant    = document.getElementById('cfg-ant').value.trim();
+  const gk     = document.getElementById('cfg-gk').value.trim();
+  const sid    = document.getElementById('cfg-sid').value.trim();
+  const secret = document.getElementById('cfg-secret').value.trim();
+  if (!ant || !gk || !sid || !secret) { alert('Please fill in all four fields.'); return; }
+  saveSetup();
+
+  const code = `const SHEET_NAME = 'Items';
+const ANTHROPIC_KEY = '${ant}';
+const GOOGLE_KEY    = '${gk}';
+const SHEET_ID      = '${sid}';
+const WORKER_SECRET = '${secret}';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Worker-Secret',
+};
+
+export default {
+  async fetch(request, env) {
+    if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    if (request.method !== 'POST') return json({ error: 'POST only' }, 405);
+
+    const secret = request.headers.get('X-Worker-Secret');
+    if (secret !== WORKER_SECRET) return json({ error: 'Unauthorized' }, 401);
+
+    let body;
+    try { body = await request.json(); } catch(e) { return json({ error: 'Invalid JSON' }, 400); }
+    const { url, title: rawTitle } = body;
+    if (!url) return json({ error: 'url required' }, 400);
+
+    let title = rawTitle || url, desc = '', type = 'article', tags = [], time = null;
+
+    try {
+      const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514', max_tokens: 400,
+          messages: [{ role: 'user', content: \`Analyze this URL and return ONLY valid JSON (no markdown):
+URL: \${url}
+TITLE HINT: \${rawTitle || 'none'}
+{"title":"concise title","desc":"2-sentence description","type":"article|podcast|video|pdf|substack|journal|other","tags":["tag1","tag2"],"time":minutes_integer}
+type: youtube/vimeo=video, spotify/podcast in URL=podcast, substack.com=substack, arxiv/pubmed=journal.
+tags: 2-5 from: finance AI economics technology health politics science history philosophy business investing culture psychology environment\` }]
+        })
+      });
+      const aiData = await aiResp.json();
+      if (!aiData.error) {
+        const p = JSON.parse(aiData.content[0].text.replace(/\`\`\`json|\`\`\`/g, '').trim());
+        title = p.title || title; desc = p.desc || ''; type = p.type || 'article'; tags = p.tags || []; time = p.time || null;
+      }
+    } catch(e) { console.error('AI failed:', e.message); }
+
+    const now = Date.now();
+    const id  = now.toString(36) + Math.random().toString(36).slice(2, 6);
+    const row = [id, 'me', url, title, desc, type, 'medium', time || '', '', 'unreviewed',
+                 tags.join(', '), now, now, '', '', '', ''];
+
+    const range = encodeURIComponent(SHEET_NAME + '!A:Q');
+    const sheetResp = await fetch(
+      \`https://sheets.googleapis.com/v4/spreadsheets/\${SHEET_ID}/values/\${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS&key=\${GOOGLE_KEY}\`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ values: [row] }) }
+    );
+    if (!sheetResp.ok) return json({ error: 'Sheet write failed', detail: await sheetResp.text() }, 500);
+    return json({ success: true, id, title, message: '"' + title + '" added to ReadQueue' });
+  }
+};
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
+}`;
+
+  document.getElementById('worker-code').textContent = code;
+}
+
+function copyCode(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function onWorkerUrlChange() {
+  const url    = document.getElementById('cfg-wurl').value.trim();
+  const secret = document.getElementById('cfg-secret').value.trim();
+  saveSetup();
+  updateBookmarklet(url, secret);
+  updateShortcutLink(url, secret);
+  // Update manual shortcut instructions
+  document.getElementById('shortcut-manual').textContent =
+`URL: ${url}
+Method: POST
+Headers:
+  Content-Type: application/json
+  X-Worker-Secret: ${secret || '[your worker secret]'}
+Body (JSON):
+  {
+    "url": [Shortcut Input],
+    "title": ""
+  }`;
+}
+
+function updateBookmarklet(workerUrl, secret) {
+  if (!workerUrl) return;
+  const code = `(function(){
+    var u=location.href;
+    var t=document.title||'';
+    var n=document.createElement('div');
+    n.style.cssText='position:fixed;top:16px;right:16px;z-index:999999;background:#2A5C45;color:#fff;padding:10px 16px;border-radius:8px;font:500 14px/1.4 system-ui;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:280px;';
+    n.textContent='📚 Saving to ReadQueue…';
+    document.body.appendChild(n);
+    fetch('${workerUrl}',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Worker-Secret':'${secret}'},
+      body:JSON.stringify({url:u,title:t})
+    }).then(r=>r.json()).then(d=>{
+      n.textContent = d.success ? '✓ '+d.title : '✗ '+(d.error||'Failed');
+      if(!d.success) n.style.background='#8B1F1F';
+      setTimeout(()=>n.remove(),3500);
+    }).catch(()=>{
+      n.textContent='✗ Could not reach ReadQueue';
+      n.style.background='#8B1F1F';
+      setTimeout(()=>n.remove(),3500);
+    });
+  })()`;
+  document.getElementById('bookmarklet-link').href = 'javascript:' + encodeURIComponent(code);
+}
+
+function updateShortcutLink(workerUrl, secret) {
+  if (!workerUrl) return;
+  // Build an iOS Shortcut deep link using the x-callback-url scheme
+  // This creates a shortcut that POSTs to the worker
+  // We encode a shortcut definition as a shortcut URL
+  const shortcutName = 'Save to ReadQueue';
+  // Shortcuts can be shared via iCloud — we build a data URI as fallback with instructions
+  // The actual shortcut link format requires hosting; provide deep-link to Shortcuts app with pre-filled URL action
+  const shortcutsUrl = `shortcuts://create-shortcut`;
+  document.getElementById('shortcut-link').href = shortcutsUrl;
+  document.getElementById('shortcut-link').textContent = '📱 Open Shortcuts App';
+}
+
+async function testEndpoint() {
+  const url    = document.getElementById('test-url').value.trim();
+  const wurl   = document.getElementById('cfg-wurl').value.trim();
+  const secret = document.getElementById('cfg-secret').value.trim();
+  const res    = document.getElementById('test-result');
+
+  if (!url)    { res.className='test-result err'; res.textContent='Enter a URL to test.'; return; }
+  if (!wurl)   { res.className='test-result err'; res.textContent='Enter your Worker URL first (Step 4 above).'; return; }
+  if (!secret) { res.className='test-result err'; res.textContent='Enter your Worker Secret first (Step 3 above).'; return; }
+
+  res.className='test-result ok'; res.textContent='Sending…';
+
+  try {
+    const r = await fetch(wurl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': secret },
+      body: JSON.stringify({ url, title: '' })
+    });
+    const d = await r.json();
+    if (d.success) {
+      res.className='test-result ok';
+      res.textContent = '✓ Success! "' + d.title + '" was added to your ReadQueue. Open the app to see it.';
+    } else {
+      res.className='test-result err';
+      res.textContent = '✗ Error: ' + (d.error||JSON.stringify(d));
+    }
+  } catch(e) {
+    res.className='test-result err';
+    res.textContent = '✗ Could not reach your Worker. Check the URL and make sure it was deployed. (' + e.message + ')';
+  }
+}
+</script>
+</body>
+</html>
