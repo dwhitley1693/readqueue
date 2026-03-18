@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="ReadQueue">
 <title>ReadQueue</title>
 <script src="https://accounts.google.com/gsi/client" async></script>
-<script src="https://apis.google.com/js/api.js" async></script>
+<script src="https://apis.google.com/js/api.js?onload=onGapiLoad" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -430,8 +430,9 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────
-const CLIENT_ID = '781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com';
-const SHEET_ID  = '1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk';
+const CLIENT_ID  = '781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com';
+const SHEET_ID   = '1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk';
+const GOOGLE_KEY = 'AIzaSyAlsOop5T1K8O-rkUtk5w_swaMENP2Oz_o'; // used only for Picker UI, not Sheet writes
 // Allowed Google accounts
 const ALLOWED   = ['gmail.com']; // accepts ANY google account by default; restrict below
 // To restrict to specific emails, set:
@@ -547,16 +548,41 @@ async function launchApp() {
 }
 
 // ── GOOGLE PICKER ─────────────────────────────────────────
+let pickerApiLoaded = false;
+
+// Called by gapi script onload callback
+function onGapiLoad() {
+  gapi.load('picker', () => { pickerApiLoaded = true; });
+}
+
 function openPicker() {
-  if (!window.gapi) {
-    // gapi not loaded yet — load it now
-    const s = document.createElement('script');
-    s.src = 'https://apis.google.com/js/api.js';
-    s.onload = () => gapi.load('picker', showPicker);
-    document.head.appendChild(s);
-  } else {
-    gapi.load('picker', showPicker);
+  const btn = document.querySelector('#connect-screen .btn-p');
+  if (btn) { btn.textContent = 'Loading picker…'; btn.disabled = true; }
+
+  function tryShow(attempts) {
+    if (pickerApiLoaded && S.accessToken) {
+      if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
+      showPicker();
+      return;
+    }
+    if (attempts <= 0) {
+      if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
+      const err = document.getElementById('connect-err');
+      err.textContent = 'Picker failed to load. Make sure pop-ups are allowed for this site and try again.';
+      err.classList.add('show');
+      return;
+    }
+    // Not ready yet — if gapi isn't even loaded, inject it
+    if (!window.gapi) {
+      const s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js?onload=onGapiLoad';
+      document.head.appendChild(s);
+    } else if (!pickerApiLoaded) {
+      gapi.load('picker', () => { pickerApiLoaded = true; });
+    }
+    setTimeout(() => tryShow(attempts - 1), 500);
   }
+  tryShow(10); // retry up to 5 seconds
 }
 
 function showPicker() {
@@ -567,6 +593,7 @@ function showPicker() {
   const picker = new google.picker.PickerBuilder()
     .addView(view)
     .setOAuthToken(S.accessToken)
+    .setDeveloperKey(GOOGLE_KEY)
     .setTitle('Select your ReadQueue Google Sheet')
     .setCallback(pickerCallback)
     .build();
@@ -577,23 +604,12 @@ async function pickerCallback(data) {
   if (data.action === google.picker.Action.PICKED) {
     const doc = data.docs[0];
     S.sheetId = doc.id;
-    svl(); // persist to localStorage
-    // Verify it's the right sheet by checking its name
-    try {
-      const meta = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}?fields=properties.title`,
-        { headers: { 'Authorization': 'Bearer ' + S.accessToken } }
-      ).then(r=>r.json());
-      const title = meta.properties?.title || doc.name;
-      if (!title.toLowerCase().includes('readqueue') && !title.toLowerCase().includes('read queue')) {
-        const ok = confirm(`You selected "${title}". Is this your ReadQueue sheet?`);
-        if (!ok) { S.sheetId = null; svl(); return; }
-      }
-    } catch(e) { /* non-fatal, proceed anyway */ }
+    svl();
+    const err = document.getElementById('connect-err');
+    if (err) err.classList.remove('show');
     launchApp();
-  } else if (data.action === google.picker.Action.CANCEL) {
-    // user cancelled — just stay on connect screen
   }
+  // if CANCEL — stay on connect screen, do nothing
 }
 
 function showAKPrompt() {
