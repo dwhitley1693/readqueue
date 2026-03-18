@@ -565,32 +565,23 @@ function onGapiLoad() {
 
 function openPicker() {
   const btn = document.querySelector('#connect-screen .btn-p');
+  const err = document.getElementById('connect-err');
   if (btn) { btn.textContent = 'Loading picker…'; btn.disabled = true; }
+  if (err) err.classList.remove('show');
 
-  function tryShow(attempts) {
-    if (pickerApiLoaded && S.accessToken) {
-      if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
-      showPicker();
-      return;
-    }
-    if (attempts <= 0) {
-      if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
-      const err = document.getElementById('connect-err');
-      err.textContent = 'Picker failed to load. Make sure pop-ups are allowed for this site and try again.';
-      err.classList.add('show');
-      return;
-    }
-    // Not ready yet — if gapi isn't even loaded, inject it
-    if (!window.gapi) {
-      const s = document.createElement('script');
-      s.src = 'https://apis.google.com/js/api.js?onload=onGapiLoad';
-      document.head.appendChild(s);
-    } else if (!pickerApiLoaded) {
-      gapi.load('picker', () => { pickerApiLoaded = true; });
-    }
-    setTimeout(() => tryShow(attempts - 1), 500);
+  function onReady() {
+    if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
+    showPicker();
   }
-  tryShow(10); // retry up to 5 seconds
+
+  if (pickerApiLoaded) {
+    onReady();
+  } else {
+    gapi.load('picker', () => {
+      pickerApiLoaded = true;
+      onReady();
+    });
+  }
 }
 
 function showPicker() {
