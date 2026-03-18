@@ -255,21 +255,22 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
     <div class="connect-icon">📊</div>
     <div class="connect-title">Connect your ReadQueue sheet</div>
     <div class="connect-desc">
-      Because you're using the secure <em>drive.file</em> permission, you need to select your ReadQueue Google Sheet once so the app can access it. You'll never be asked again on this device.
+      Paste your Google Sheet ID below to connect your queue. You'll only need to do this once per device — it's remembered automatically.
     </div>
-    <button class="btn btn-p" style="width:100%;justify-content:center;padding:.65rem" onclick="openPicker()">
-      📂 Select my ReadQueue sheet
-    </button>
+    <div style="width:100%;display:flex;flex-direction:column;gap:6px">
+      <input type="text" id="manual-sheet-id" placeholder="Paste your Sheet ID or full Sheet URL…"
+        style="width:100%;font-size:.84rem;padding:.55rem .7rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);"
+        onkeydown="if(event.key==='Enter')connectManual()"/>
+      <button class="btn btn-p" style="width:100%;justify-content:center;padding:.65rem" onclick="connectManual()">
+        Connect sheet
+      </button>
+    </div>
     <div class="connect-err" id="connect-err"></div>
-    <details style="width:100%;margin-top:.5rem">
-      <summary style="font-size:.78rem;color:var(--text3);cursor:pointer;user-select:none">Having trouble? Enter Sheet ID manually</summary>
-      <div style="display:flex;gap:8px;margin-top:.65rem">
-        <input type="text" id="manual-sheet-id" placeholder="1caXpz…" style="flex:1;font-size:.82rem;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:monospace"/>
-        <button class="btn btn-p btn-sm" onclick="connectManual()">Connect</button>
-      </div>
-      <p style="font-size:.72rem;color:var(--text3);margin-top:.4rem">Your Sheet ID is the long string in the URL between /d/ and /edit</p>
-    </details>
-    <div style="font-size:.75rem;color:var(--text3)">Only your ReadQueue sheet will be accessible — not the rest of your Drive.</div>
+    <div style="font-size:.75rem;color:var(--text3);line-height:1.6;text-align:center">
+      Your Sheet ID is the long string in the Sheet URL between <code style="font-size:.72rem">/d/</code> and <code style="font-size:.72rem">/edit</code><br>
+      Your ReadQueue Sheet ID is:<br>
+      <code style="font-size:.72rem;word-break:break-all">1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk</code>
+    </div>
   </div>
 </div>
 
@@ -495,9 +496,11 @@ function onGoogleSignIn(response) {
 
 let tokenClient;
 function initTokenClient() {
+  // We use the spreadsheets scope so the token works with a known sheet ID.
+  // drive.file requires a picker flow which GitHub Pages blocks via COOP headers.
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
     callback: async (tokenResponse) => {
       if (tokenResponse.error) {
         document.getElementById('signin-err').textContent = 'Authentication failed: ' + tokenResponse.error;
@@ -505,7 +508,6 @@ function initTokenClient() {
         return;
       }
       S.accessToken = tokenResponse.access_token;
-      // Schedule refresh before expiry (55 min)
       setTimeout(refreshToken, 55 * 60 * 1000);
       await bootApp();
     }
