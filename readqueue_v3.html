@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ReadQueue">
+<title>ReadQueue</title>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F5F0;--surface:#FFFFFF;--surface2:#F0EDE6;
+  --border:#E2DDD4;--border2:#C8C2B8;
+  --text:#1A1714;--text2:#6B6560;--text3:#9E9890;
+  --accent:#2A5C45;--accent-light:#E8F2EC;--accent-text:#1A3D2E;
+  --amber:#B85C00;--amber-light:#FFF3E0;
+  --red:#8B1F1F;--red-light:#FDEAEA;
+  --blue:#1A4A7A;--blue-light:#EAF2FF;
+  --purple:#4A1D7A;--purple-light:#F3EEFF;
+  --tag-bg:#ECEAE4;--tag-text:#3D3A35;
+  --radius:10px;--radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',-apple-system,sans-serif;
+  --tr:.18s ease;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111010;--surface:#1C1B19;--surface2:#252320;
+  --border:#2E2C28;--border2:#3D3A35;
+  --text:#F0EDE6;--text2:#9E9890;--text3:#6B6560;
+  --accent:#4CAF7A;--accent-light:#0D2418;--accent-text:#A8E6C4;
+  --amber:#FFB347;--amber-light:#1F1200;
+  --red:#FF7070;--red-light:#1F0808;
+  --blue:#70A8FF;--blue-light:#0A1628;
+  --purple:#B07AFF;--purple-light:#150A28;
+  --tag-bg:#2A2825;--tag-text:#C8C2B8;
+}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
+
+/* ── SIGN-IN SCREEN ── */
+#signin-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:2rem;}
+#signin-screen.show{display:flex;}
+.signin-logo{font-family:var(--fd);font-size:2.2rem;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+.signin-logo span{color:var(--accent);font-style:italic;}
+.signin-sub{font-size:.9rem;color:var(--text2);max-width:320px;text-align:center;line-height:1.6;}
+.signin-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem;box-shadow:var(--shadow-lg);}
+.signin-err{font-size:.8rem;color:var(--red);background:var(--red-light);padding:.5rem .9rem;border-radius:var(--radius-sm);display:none;}
+.signin-err.show{display:block;}
+
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:1000px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;}
+.logo{font-family:var(--fd);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+.logo span{color:var(--accent);font-style:italic;}
+.hr{display:flex;gap:8px;align-items:center;}
+.main{flex:1;padding:1.25rem 1.5rem;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fb);font-size:.84rem;font-weight:500;padding:.45rem .9rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all var(--tr);white-space:nowrap;}
+.btn:hover{background:var(--surface2);border-color:var(--border2);}
+.btn:active{transform:scale(.98);}
+.btn-p{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-p:hover{opacity:.88;background:var(--accent);}
+.btn-sm{padding:.3rem .65rem;font-size:.78rem;}
+.btn-ic{padding:.38rem;}
+.btn-gh{border-color:transparent;background:transparent;}
+.btn-gh:hover{background:var(--surface2);border-color:var(--border);}
+.btn-d{color:var(--red);border-color:transparent;background:transparent;}
+.btn-d:hover{background:var(--red-light);}
+.btn-pu{background:var(--purple-light);color:var(--purple);border-color:var(--purple-light);}
+.btn-pu:hover{opacity:.85;}
+
+/* ── USER AVATAR ── */
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-light);color:var(--accent-text);font-size:.75rem;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* ── PROFILE ── */
+.ptoggle{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+.pbtn{padding:.3rem .7rem;font-size:.78rem;font-weight:500;background:transparent;border:none;cursor:pointer;color:var(--text2);font-family:var(--fb);transition:all var(--tr);}
+.pbtn.active{background:var(--accent);color:#fff;}
+
+/* ── LIST TABS ── */
+.list-tabs{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.ltab{padding:.35rem .8rem;border-radius:20px;font-size:.8rem;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;gap:5px;}
+.ltab:hover{border-color:var(--border2);color:var(--text);}
+.ltab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ltab .lcount{font-size:.68rem;opacity:.75;}
+.ltab-new{padding:.35rem .8rem;border-radius:20px;font-size:.8rem;border:1px dashed var(--border2);background:transparent;color:var(--text3);cursor:pointer;transition:all var(--tr);}
+.ltab-new:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── CONTROLS ── */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:1rem;padding:.9rem 1.1rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);}
+.sw{position:relative;flex:1;min-width:160px;}
+.sw svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;width:13px;height:13px;}
+.si{width:100%;padding:.4rem .7rem .4rem 1.9rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--fb);font-size:.84rem;transition:border-color var(--tr);}
+.si:focus{outline:none;border-color:var(--accent);}
+select.fs{padding:.4rem .55rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--fb);font-size:.81rem;cursor:pointer;}
+select.fs:focus{outline:none;border-color:var(--accent);}
+
+/* ── STATS ── */
+.sbar{display:flex;gap:14px;margin-bottom:.9rem;font-size:.79rem;color:var(--text2);flex-wrap:wrap;align-items:center;}
+.stat{display:flex;align-items:center;gap:5px;}
+.sdot{width:7px;height:7px;border-radius:50%;}
+.sync{font-size:.73rem;color:var(--text3);display:flex;align-items:center;gap:5px;margin-left:auto;}
+.syncdot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.syncdot.spin{animation:pulse 1s infinite;background:var(--amber);}
+.syncdot.err{background:var(--red);animation:none;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CARDS ── */
+.card-list{display:flex;flex-direction:column;gap:8px;}
+.icard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:box-shadow var(--tr),border-color var(--tr);box-shadow:var(--shadow);}
+.icard:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.09);}
+.cmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:.55rem 1rem .45rem;border-bottom:1px solid var(--border);background:var(--surface2);font-size:.75rem;color:var(--text2);}
+.cbody{padding:.7rem 1rem .75rem;}
+.ctitle{font-weight:500;font-size:.95rem;color:var(--text);line-height:1.35;margin-bottom:3px;}
+.cdesc{font-size:.8rem;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1rem;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;}
+.trow{display:flex;gap:4px;flex-wrap:wrap;flex:1;}
+.cact{display:flex;gap:4px;flex-shrink:0;}
+.sep{color:var(--border2);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:.18rem .5rem;border-radius:20px;font-size:.71rem;font-weight:500;white-space:nowrap;}
+.bu{background:var(--amber-light);color:var(--amber);}
+.br{background:var(--accent-light);color:var(--accent-text);}
+.bi{background:var(--blue-light);color:var(--blue);}
+.tbadge{display:inline-flex;align-items:center;gap:3px;padding:.15rem .45rem;border-radius:4px;font-size:.71rem;background:var(--tag-bg);color:var(--tag-text);}
+.lbadge{display:inline-flex;align-items:center;padding:.13rem .45rem;border-radius:4px;font-size:.69rem;font-weight:500;background:var(--purple-light);color:var(--purple);}
+.ph{color:var(--red);font-weight:600;font-size:.75rem;}
+.pm{color:var(--amber);font-size:.75rem;}
+.pl{color:var(--text3);font-size:.75rem;}
+.tag{display:inline-block;padding:.13rem .42rem;border-radius:4px;font-size:.69rem;background:var(--tag-bg);color:var(--tag-text);}
+
+/* ── EMPTY / LOADING ── */
+.empty{text-align:center;padding:4rem 2rem;color:var(--text2);}
+.eico{font-size:2.5rem;margin-bottom:1rem;opacity:.4;}
+.empty h3{font-family:var(--fd);font-size:1.2rem;color:var(--text);margin-bottom:.5rem;font-style:italic;}
+.empty p{font-size:.84rem;max-width:300px;margin:0 auto 1.25rem;}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:10px;color:var(--text2);font-size:.84rem;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem;opacity:0;transition:opacity .2s ease;pointer-events:none;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;transform:translateY(10px);transition:transform .2s ease;border:1px solid var(--border);}
+.overlay.open .modal{transform:translateY(0);}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;}
+.mtitle{font-family:var(--fd);font-size:1.05rem;font-style:italic;font-weight:500;}
+.mbody{padding:1.35rem 1.4rem;display:flex;flex-direction:column;gap:.9rem;}
+.mfoot{padding:.9rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* ── FORM ── */
+.fg{display:flex;flex-direction:column;gap:4px;}
+label{font-size:.78rem;font-weight:500;color:var(--text2);}
+input[type=text],input[type=url],input[type=number],input[type=email],textarea,select.fsel{padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--fb);font-size:.86rem;transition:border-color var(--tr);width:100%;}
+input:focus,textarea:focus,select.fsel:focus{outline:none;border-color:var(--accent);}
+textarea{resize:vertical;min-height:76px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.hint{font-size:.73rem;color:var(--text3);}
+
+/* ── LIST CHECKBOXES in modal ── */
+.list-checks{display:flex;flex-wrap:wrap;gap:6px;}
+.lcheck{display:flex;align-items:center;gap:5px;padding:.3rem .65rem;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:.8rem;transition:all var(--tr);user-select:none;}
+.lcheck:hover{border-color:var(--border2);}
+.lcheck.on{background:var(--purple-light);color:var(--purple);border-color:var(--purple);}
+.lcheck input{display:none;}
+
+/* ── AI BAR ── */
+.aibar{display:flex;align-items:center;gap:8px;padding:.55rem .85rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);font-size:.79rem;color:var(--text2);}
+.aidot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite;flex-shrink:0;}
+.aibar.ok{border-color:var(--accent);background:var(--accent-light);color:var(--accent-text);}
+.aibar.ok .aidot{animation:none;}
+.aibar.err{border-color:var(--red-light);background:var(--red-light);color:var(--red);}
+.aibar.err .aidot{background:var(--red);animation:none;}
+
+/* ── TAGS INPUT ── */
+.tiw{display:flex;flex-wrap:wrap;gap:5px;padding:.4rem .55rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);transition:border-color var(--tr);cursor:text;min-height:38px;align-items:center;}
+.tiw:focus-within{border-color:var(--accent);}
+.tchip{display:inline-flex;align-items:center;gap:3px;padding:.13rem .42rem;background:var(--accent-light);color:var(--accent-text);border-radius:4px;font-size:.73rem;}
+.tchip button{background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:.9rem;line-height:1;opacity:.65;}
+.tchip button:hover{opacity:1;}
+.tri{border:none;background:transparent;outline:none;font-family:var(--fb);font-size:.84rem;color:var(--text);min-width:80px;flex:1;}
+
+/* ── DETAIL PANEL ── */
+.doverlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:900;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.doverlay.open{opacity:1;pointer-events:all;}
+.dpanel{position:fixed;right:0;top:0;bottom:0;width:min(520px,96vw);background:var(--surface);box-shadow:var(--shadow-lg);border-left:1px solid var(--border);overflow-y:auto;transform:translateX(100%);transition:transform .25s ease;z-index:901;}
+.doverlay.open .dpanel{transform:translateX(0);}
+.dph{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.dpt{flex:1;}
+.dptitle{font-family:var(--fd);font-size:1.1rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
+.dpmeta{font-size:.76rem;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;}
+.dpbody{padding:1.1rem 1.4rem;display:flex;flex-direction:column;gap:1.1rem;}
+.dplbl{font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:5px;}
+.dpdesc{font-size:.86rem;line-height:1.6;color:var(--text2);}
+.talist{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.tai{display:flex;align-items:flex-start;gap:7px;padding:.55rem .75rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);}
+.tanum{font-size:.68rem;font-weight:600;color:var(--accent);min-width:14px;margin-top:3px;}
+.tainp{flex:1;background:transparent;border:none;outline:none;font-family:var(--fb);font-size:.84rem;color:var(--text);resize:none;min-height:1.4em;line-height:1.5;}
+.tainp::placeholder{color:var(--text3);}
+
+/* ── LISTS MANAGER MODAL ── */
+.list-manager-row{display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid var(--border);}
+.list-manager-row:last-child{border-bottom:none;}
+.lm-name{flex:1;font-size:.88rem;}
+.lm-count{font-size:.75rem;color:var(--text3);}
+
+/* ── SHARE EMAIL PREVIEW ── */
+.email-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:.8rem;color:var(--text2);max-height:240px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;word-break:break-word;}
+
+@media(max-width:600px){.main{padding:.9rem 1rem;}.fr{grid-template-columns:1fr;}.header{padding:.75rem 1rem;}}
+
+.lbtn{display:inline-flex;align-items:center;gap:5px;color:var(--accent);text-decoration:none;font-size:.8rem;}
+.lbtn:hover{text-decoration:underline;}
+hr.dpd{border:none;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<!-- SIGN-IN SCREEN -->
+<div id="signin-screen" class="show">
+  <div class="signin-logo">Read<span>Queue</span></div>
+  <div class="signin-sub">Your personal reading and listening queue, synced across all your devices.</div>
+  <div class="signin-card">
+    <div style="font-size:.85rem;color:var(--text2);text-align:center">Sign in with your Google account to access your queue.</div>
+    <div id="g_id_onload" data-client_id="781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com" data-callback="onGoogleSignIn" data-auto_select="true" data-itp_support="true"></div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
+    <div class="signin-err" id="signin-err">Access denied. This account is not authorised to use ReadQueue.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none">
+  <header class="header">
+    <div class="logo">Read<span>Queue</span></div>
+    <div class="hr">
+      <div class="ptoggle">
+        <button class="pbtn active" id="p-me" onclick="switchProfile('me')">Me</button>
+        <button class="pbtn" id="p-pt" onclick="switchProfile('partner')">Partner</button>
+      </div>
+      <button class="btn btn-sm btn-gh" onclick="openListsManager()">⊞ Lists</button>
+      <button class="btn btn-sm btn-gh" onclick="openSettings()">⚙ Settings</button>
+      <button class="btn btn-p btn-sm" onclick="openAddModal()">+ Add</button>
+      <div class="avatar" id="user-avatar" title="Sign out" onclick="signOut()"></div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- List tabs -->
+    <div class="list-tabs" id="list-tabs"></div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="sw">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input class="si" type="search" placeholder="Search titles, descriptions, tags…" id="search-inp" oninput="renderList()"/>
+      </div>
+      <select class="fs" id="f-status" onchange="renderList()"><option value="">All statuses</option><option value="unreviewed">Unreviewed</option><option value="in-progress">In progress</option><option value="reviewed">Reviewed</option></select>
+      <select class="fs" id="f-type" onchange="renderList()"><option value="">All types</option><option value="article">Article</option><option value="podcast">Podcast</option><option value="video">Video</option><option value="pdf">PDF</option><option value="substack">Substack</option><option value="journal">Journal</option><option value="other">Other</option></select>
+      <select class="fs" id="f-prio" onchange="renderList()"><option value="">All priorities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+      <select class="fs" id="f-tag" onchange="renderList()"><option value="">All tags</option></select>
+      <select class="fs" id="f-sort" onchange="renderList()"><option value="saved_desc">Newest first</option><option value="saved_asc">Oldest first</option><option value="prio">Priority</option><option value="title">Title A–Z</option><option value="time">Read time</option></select>
+    </div>
+
+    <div class="sbar" id="sbar"></div>
+    <div class="card-list" id="clist"></div>
+    <div id="empty" class="empty" style="display:none">
+      <div class="eico">📚</div>
+      <h3 id="empty-h">Your queue is clear</h3>
+      <p id="empty-p">Add articles, podcasts, videos, and PDFs you want to revisit and reflect on.</p>
+      <button class="btn btn-p" onclick="openAddModal()">+ Add your first item</button>
+    </div>
+  </main>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="m-add" onclick="mc(event,'m-add')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle" id="m-ttl">Add to queue</span><button class="btn btn-ic btn-gh" onclick="cm('m-add')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>URL <span class="hint">(paste to trigger AI analysis)</span></label><input type="url" id="f-url" placeholder="https://…" oninput="urlChanged()"/></div>
+      <div id="ai-wrap" style="display:none"><div class="aibar" id="aibar"><div class="aidot"></div><span id="aitxt">Analysing with Claude…</span></div></div>
+      <div class="fg"><label>Title *</label><input type="text" id="f-title" placeholder="Article or episode title"/></div>
+      <div class="fg"><label>Description</label><textarea id="f-desc" placeholder="What is this about?"></textarea></div>
+      <div class="fr">
+        <div class="fg"><label>Type</label><select class="fsel" id="f-type-inp"><option value="article">📄 Article</option><option value="podcast">🎙 Podcast</option><option value="video">▶ Video</option><option value="pdf">📑 PDF</option><option value="substack">✉ Substack</option><option value="journal">🔬 Journal</option><option value="other">📎 Other</option></select></div>
+        <div class="fg"><label>Priority</label><select class="fsel" id="f-prio-inp"><option value="medium">Medium</option><option value="high">↑ High</option><option value="low">Low</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Estimated time (min)</label><input type="number" id="f-time" placeholder="10" min="1" max="999"/></div>
+        <div class="fg"><label>Source / recommender</label><input type="text" id="f-src" placeholder="Morning Brew, John…"/></div>
+      </div>
+      <div class="fg">
+        <label>Tags <span class="hint">(press Enter to add)</span></label>
+        <div class="tiw" id="tiw" onclick="document.getElementById('tri').focus()"><input class="tri" id="tri" placeholder="finance, AI…" onkeydown="tkd(event)"/></div>
+      </div>
+      <div class="fg">
+        <label>Custom lists <span class="hint">(assign to one or more lists)</span></label>
+        <div class="list-checks" id="list-checks-add"></div>
+      </div>
+      <div class="fg"><label>Status</label><select class="fsel" id="f-status-inp"><option value="unreviewed">Unreviewed</option><option value="in-progress">In progress</option><option value="reviewed">Reviewed</option></select></div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="cm('m-add')">Cancel</button><button class="btn btn-p" id="sbtn" onclick="saveItem()">Save to queue</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="m-set" onclick="mc(event,'m-set')">
+  <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle">Settings</span><button class="btn btn-ic btn-gh" onclick="cm('m-set')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>Anthropic API Key <span class="hint">(for AI tagging)</span></label><input type="text" id="s-ant" placeholder="sk-ant-…"/><span class="hint">Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a></span></div>
+      <div class="fg"><label>Profile names</label><div class="fr"><input type="text" id="s-nm" placeholder="Me"/><input type="text" id="s-np" placeholder="Partner"/></div></div>
+      <div style="padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text2)">
+        Signed in as <strong id="s-email"></strong><br>
+        <span class="hint">Sheet ID: 1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk</span>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="cm('m-set')">Cancel</button><button class="btn btn-p" onclick="saveSettings()">Save</button></div>
+  </div>
+</div>
+
+<!-- LISTS MANAGER MODAL -->
+<div class="overlay" id="m-lists" onclick="mc(event,'m-lists')">
+  <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle">Custom lists</span><button class="btn btn-ic btn-gh" onclick="cm('m-lists')">✕</button></div>
+    <div class="mbody">
+      <div class="fg">
+        <label>Create new list</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="new-list-name" placeholder="e.g. AI, Finance, Book club…" style="flex:1" onkeydown="if(event.key==='Enter')createList()"/>
+          <button class="btn btn-p btn-sm" onclick="createList()">Create</button>
+        </div>
+      </div>
+      <div id="lists-manager-rows"></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-p" onclick="cm('m-lists')">Done</button></div>
+  </div>
+</div>
+
+<!-- SHARE LIST MODAL -->
+<div class="overlay" id="m-share" onclick="mc(event,'m-share')">
+  <div class="modal" style="max-width:540px" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle" id="share-title">Share list</span><button class="btn btn-ic btn-gh" onclick="cm('m-share')">✕</button></div>
+    <div class="mbody">
+      <div class="fg">
+        <label>Recipient email address</label>
+        <input type="email" id="share-email" placeholder="name@example.com"/>
+      </div>
+      <div class="fg">
+        <label>Preview <span class="hint">(this is what the email will contain)</span></label>
+        <div class="email-preview" id="email-preview"></div>
+      </div>
+      <div class="hint" style="margin-top:-.25rem">Clicking "Open in email" will open your default email app with this content pre-filled. You can edit before sending.</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="cm('m-share')">Cancel</button>
+      <button class="btn btn-pu" onclick="openEmail()">✉ Open in email</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="doverlay" id="d-ov" onclick="closeDetail()">
+  <div class="dpanel" onclick="event.stopPropagation()">
+    <div class="dph"><div class="dpt"><div class="dptitle" id="dp-title"></div><div class="dpmeta" id="dp-meta"></div></div><button class="btn btn-ic btn-gh" onclick="closeDetail()">✕</button></div>
+    <div class="dpbody">
+      <div><div class="dplbl">Description</div><div class="dpdesc" id="dp-desc"></div></div>
+      <div><div class="dplbl">Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="dp-sbtns"></div></div>
+      <div>
+        <div class="dplbl">Key takeaways <span class="hint">(up to 3)</span></div>
+        <ul class="talist" id="dp-ta"></ul>
+        <button class="btn btn-sm btn-gh" id="dp-addta" onclick="addTakeaway()" style="margin-top:6px">+ Add takeaway</button>
+      </div>
+      <div><div class="dplbl">Tags</div><div class="trow" id="dp-tags"></div></div>
+      <div id="dp-lists-wrap"><div class="dplbl">Lists</div><div class="trow" id="dp-lists"></div></div>
+      <hr class="dpd">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="dp-acts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME LIST MODAL -->
+<div class="overlay" id="m-rename" onclick="mc(event,'m-rename')">
+  <div class="modal" style="max-width:380px" onclick="event.stopPropagation()">
+    <div class="mhdr"><span class="mtitle">Rename list</span><button class="btn btn-ic btn-gh" onclick="cm('m-rename')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>List name</label><input type="text" id="rename-inp" placeholder="New name" onkeydown="if(event.key==='Enter')confirmRename()"/></div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="cm('m-rename')">Cancel</button><button class="btn btn-p" onclick="confirmRename()">Rename</button></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+const CLIENT_ID = '781190433174-81lcg829ofjontvpl5f2oat2qn54m3ur.apps.googleusercontent.com';
+const SHEET_ID  = '1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk';
+// Allowed Google accounts
+const ALLOWED   = ['gmail.com']; // accepts ANY google account by default; restrict below
+// To restrict to specific emails, set:
+// const ALLOWED_EMAILS = ['you@gmail.com','partner@gmail.com'];
+const ALLOWED_EMAILS = null; // null = allow any signed-in Google account
+
+const SN  = 'Items';
+const SL  = 'Lists'; // second sheet for custom list definitions
+const C   = {id:0,pr:1,url:2,ti:3,de:4,ty:5,pi:6,tm:7,sr:8,st:9,tg:10,sv:11,up:12,t1:13,t2:14,t3:15,ls:16};
+// ls = column Q = custom lists (comma-separated list names)
+
+// ── STATE ────────────────────────────────────────────────
+let S = {
+  items:[],
+  lists:[], // [{id,name,createdAt}]
+  profile:'me',
+  ak:'',
+  names:{me:'Me',partner:'Partner'},
+  accessToken:null,
+  userEmail:'',
+  userName:'',
+  userPic:'',
+};
+let eid=null,did=null,ctags=[],clists=[],utmr=null;
+let renamingListId=null;
+let shareListName=null;
+
+const TICO={article:'📄',podcast:'🎙',video:'▶',pdf:'📑',substack:'✉',journal:'🔬',other:'📎'};
+const PO={high:0,medium:1,low:2};
+const SLL={unreviewed:'● Unreviewed','in-progress':'◑ In progress',reviewed:'✓ Reviewed'};
+
+// ── LOCAL STORAGE ─────────────────────────────────────────
+function ldl(){try{const r=JSON.parse(localStorage.getItem('rq4')||'{}');S.ak=r.ak||'';S.names=r.names||{me:'Me',partner:'Partner'};S.profile=r.profile||'me';}catch(e){}}
+function svl(){localStorage.setItem('rq4',JSON.stringify({ak:S.ak,names:S.names,profile:S.profile}));}
+
+// ── GOOGLE SIGN-IN ────────────────────────────────────────
+function onGoogleSignIn(response) {
+  // Decode JWT
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const email = payload.email;
+  if (ALLOWED_EMAILS && !ALLOWED_EMAILS.includes(email)) {
+    document.getElementById('signin-err').classList.add('show');
+    return;
+  }
+  S.userEmail = email;
+  S.userName  = payload.name || email;
+  S.userPic   = payload.picture || '';
+  // Get OAuth token for Sheets API via token client
+  initTokenClient();
+}
+
+let tokenClient;
+function initTokenClient() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    callback: async (tokenResponse) => {
+      if (tokenResponse.error) {
+        document.getElementById('signin-err').textContent = 'Authentication failed: ' + tokenResponse.error;
+        document.getElementById('signin-err').classList.add('show');
+        return;
+      }
+      S.accessToken = tokenResponse.access_token;
+      // Schedule refresh before expiry (55 min)
+      setTimeout(refreshToken, 55 * 60 * 1000);
+      await bootApp();
+    }
+  });
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function refreshToken() {
+  if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function signOut() {
+  if (!confirm('Sign out of ReadQueue?')) return;
+  google.accounts.id.disableAutoSelect();
+  S.accessToken = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('signin-screen').classList.add('show');
+}
+
+async function bootApp() {
+  document.getElementById('signin-screen').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
+  ldl();
+  // Avatar
+  const av = document.getElementById('user-avatar');
+  if (S.userPic) av.innerHTML = `<img src="${S.userPic}" alt="">`;
+  else av.textContent = S.userEmail.slice(0,2).toUpperCase();
+  upl();
+  setSbar('<div class="loading"><div class="spinner"></div> Loading…</div>');
+  await ensureHeaders();
+  await Promise.all([loadLists(), loadItems()]);
+  renderTabs();
+  renderList();
+  if (!S.ak) showAKPrompt();
+}
+
+function showAKPrompt() {
+  // Show a subtle banner asking for Anthropic key
+  const b = document.createElement('div');
+  b.id = 'ak-banner';
+  b.style.cssText = 'background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:.6rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--amber);display:flex;align-items:center;gap:10px;';
+  b.innerHTML = `<span style="flex:1">Add your Anthropic API key in Settings to enable AI-powered tagging and descriptions.</span><button class="btn btn-sm" style="border-color:var(--amber);color:var(--amber)" onclick="openSettings();document.getElementById('ak-banner').remove()">Add key</button><button class="btn btn-ic btn-gh btn-sm" onclick="this.closest('#ak-banner').remove()">✕</button>`;
+  document.querySelector('.main').prepend(b);
+}
+
+// ── SHEETS API (OAuth) ────────────────────────────────────
+async function sReq(method, path, body) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}${path}`;
+  const opts = { method, headers: { 'Authorization': 'Bearer ' + S.accessToken, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(`${method} ${path} → ${r.status}: ${await r.text()}`);
+  return r.json();
+}
+const sGet    = (path)         => sReq('GET',    path);
+const sPost   = (path, body)   => sReq('POST',   path, body);
+const sPut    = (path, body)   => sReq('PUT',    path, body);
+
+async function ensureHeaders() {
+  try {
+    // Items sheet
+    const d = await sGet(`/values/${encodeURIComponent(SN+'!A1:Q1')}`);
+    const row = ((d.values||[])[0]||[]);
+    if (!row[0]) {
+      await sPost(`/values/${encodeURIComponent(SN+'!A1:Q1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        {values:[['id','profile','url','title','desc','type','prio','time','source','status','tags','saved','updated','takeaway1','takeaway2','takeaway3','lists']]});
+    }
+    // Lists sheet — create if missing
+    const meta = await sGet('');
+    const sheets = (meta.sheets||[]).map(s=>s.properties.title);
+    if (!sheets.includes(SL)) {
+      await sPost(':batchUpdate', {requests:[{addSheet:{properties:{title:SL}}}]});
+      await sPost(`/values/${encodeURIComponent(SL+'!A1:C1')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        {values:[['id','name','createdAt']]});
+      // Seed with 'AI' list
+      await sPost(`/values/${encodeURIComponent(SL+'!A:C')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+        {values:[[uid(),'AI',Date.now()]]});
+    }
+  } catch(e) { console.error('ensureHeaders:', e); }
+}
+
+// ── LOAD ─────────────────────────────────────────────────
+async function loadItems() {
+  sync('spin','Loading items…');
+  try {
+    const d = await sGet(`/values/${encodeURIComponent(SN+'!A:Q')}`);
+    const rows = (d.values||[]).slice(1);
+    S.items = rows.filter(r=>r[C.id]&&r[C.ti]).map((r,i)=>r2i(r,i+2));
+    sync('ok',`Synced · ${S.items.length} items`);
+  } catch(e) { sync('err','Load failed: '+e.message); }
+}
+
+async function loadLists() {
+  try {
+    const d = await sGet(`/values/${encodeURIComponent(SL+'!A:C')}`);
+    const rows = (d.values||[]).slice(1);
+    S.lists = rows.filter(r=>r[0]&&r[1]).map((r,i)=>({id:r[0],name:r[1],createdAt:r[2]||0,_row:i+2}));
+  } catch(e) { console.error('loadLists:', e); }
+}
+
+function r2i(r,row) {
+  return {
+    id:r[C.id]||'',profile:r[C.pr]||'me',url:r[C.url]||'',title:r[C.ti]||'',desc:r[C.de]||'',
+    type:r[C.ty]||'article',prio:r[C.pi]||'medium',time:r[C.tm]?parseInt(r[C.tm]):null,
+    source:r[C.sr]||'',status:r[C.st]||'unreviewed',
+    tags:r[C.tg]?r[C.tg].split(',').map(t=>t.trim()).filter(Boolean):[],
+    saved:r[C.sv]?parseInt(r[C.sv]):Date.now(),updated:r[C.up]?parseInt(r[C.up]):Date.now(),
+    takeaways:[r[C.t1]||'',r[C.t2]||'',r[C.t3]||''].filter(Boolean),
+    lists:r[C.ls]?r[C.ls].split(',').map(t=>t.trim()).filter(Boolean):[],
+    _row:row
+  };
+}
+function i2r(i) {
+  const ta=i.takeaways||[];
+  return [[i.id,i.profile,i.url,i.title,i.desc,i.type,i.prio,i.time||'',i.source,i.status,
+    (i.tags||[]).join(', '),i.saved,i.updated,ta[0]||'',ta[1]||'',ta[2]||'',(i.lists||[]).join(', ')]];
+}
+
+// ── WRITE ─────────────────────────────────────────────────
+async function writeItem(item, isNew) {
+  sync('spin','Saving…');
+  try {
+    if (isNew) {
+      await sPost(`/values/${encodeURIComponent(SN+'!A:Q')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {values:i2r(item)});
+      const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
+      const rows = (d.values||[]).slice(1);
+      const idx = rows.findIndex(r=>r[0]===item.id);
+      if (idx>=0) item._row=idx+2;
+    } else {
+      if (!item._row) {
+        const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
+        const rows = (d.values||[]).slice(1);
+        const idx = rows.findIndex(r=>r[0]===item.id);
+        if (idx>=0) item._row=idx+2;
+      }
+      if (item._row) {
+        await sPut(`/values/${encodeURIComponent(SN+'!A'+item._row+':Q'+item._row)}?valueInputOption=RAW`, {values:i2r(item)});
+      }
+    }
+    sync('ok','Saved ✓');
+  } catch(e) { sync('err','Save failed: '+e.message); }
+}
+
+async function deleteFromSheet(item) {
+  sync('spin','Deleting…');
+  try {
+    if (!item._row) {
+      const d = await sGet(`/values/${encodeURIComponent(SN+'!A:A')}`);
+      const rows = (d.values||[]).slice(1);
+      const idx = rows.findIndex(r=>r[0]===item.id);
+      if (idx>=0) item._row=idx+2;
+    }
+    if (item._row) {
+      await sPost(`/values/${encodeURIComponent(SN+'!A'+item._row+':Q'+item._row)}:clear`, {});
+    }
+    sync('ok','Deleted ✓');
+  } catch(e) { sync('err','Delete failed: '+e.message); }
+}
+
+// ── LISTS ─────────────────────────────────────────────────
+async function createList() {
+  const name = document.getElementById('new-list-name').value.trim();
+  if (!name) return;
+  if (S.lists.find(l=>l.name.toLowerCase()===name.toLowerCase())) {
+    alert('A list with that name already exists.');
+    return;
+  }
+  const newList = {id:uid(), name, createdAt:Date.now()};
+  S.lists.push(newList);
+  document.getElementById('new-list-name').value = '';
+  renderListsManager();
+  renderTabs();
+  renderAddListChecks();
+  // Write to sheet
+  try {
+    await sPost(`/values/${encodeURIComponent(SL+'!A:C')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+      {values:[[newList.id,newList.name,newList.createdAt]]});
+    const d = await sGet(`/values/${encodeURIComponent(SL+'!A:A')}`);
+    const rows = (d.values||[]).slice(1);
+    const idx = rows.findIndex(r=>r[0]===newList.id);
+    if (idx>=0) newList._row=idx+2;
+  } catch(e) { sync('err','List save failed: '+e.message); }
+}
+
+function openRenameList(listId) {
+  renamingListId = listId;
+  const l = S.lists.find(x=>x.id===listId);
+  if (!l) return;
+  document.getElementById('rename-inp').value = l.name;
+  om('m-rename');
+}
+
+async function confirmRename() {
+  const newName = document.getElementById('rename-inp').value.trim();
+  if (!newName) return;
+  const l = S.lists.find(x=>x.id===renamingListId);
+  if (!l) return;
+  const oldName = l.name;
+  l.name = newName;
+  // Update items that reference old name
+  S.items.forEach(item=>{
+    const idx = (item.lists||[]).indexOf(oldName);
+    if (idx>=0) { item.lists[idx]=newName; writeItem(item,false); }
+  });
+  cm('m-rename');
+  renderTabs(); renderList(); renderListsManager(); renderAddListChecks();
+  // Update sheet
+  try {
+    if (l._row) await sPut(`/values/${encodeURIComponent(SL+'!B'+l._row)}?valueInputOption=RAW`,{values:[[newName]]});
+  } catch(e) { sync('err','Rename failed: '+e.message); }
+}
+
+async function deleteList(listId) {
+  const l = S.lists.find(x=>x.id===listId);
+  if (!l) return;
+  if (!confirm(`Delete the list "${l.name}"? Items won't be deleted, just removed from this list.`)) return;
+  S.lists = S.lists.filter(x=>x.id!==listId);
+  S.items.forEach(item=>{
+    const idx=(item.lists||[]).indexOf(l.name);
+    if(idx>=0){item.lists.splice(idx,1);writeItem(item,false);}
+  });
+  renderTabs(); renderList(); renderListsManager(); renderAddListChecks();
+  try {
+    if (l._row) await sPost(`/values/${encodeURIComponent(SL+'!A'+l._row+':C'+l._row)}:clear`,{});
+  } catch(e) { sync('err','Delete list failed: '+e.message); }
+}
+
+// ── SHARE ─────────────────────────────────────────────────
+function openShareList(listName) {
+  shareListName = listName;
+  document.getElementById('share-title').textContent = `Share "${listName}" list`;
+  document.getElementById('share-email').value = '';
+  buildEmailPreview(listName);
+  om('m-share');
+}
+
+function buildEmailPreview(listName) {
+  const items = S.items.filter(i=>i.profile===S.profile&&(i.lists||[]).includes(listName));
+  let text = `ReadQueue — "${listName}" list\n`;
+  text += `Shared by ${S.userName} · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}\n`;
+  text += '─'.repeat(60) + '\n\n';
+  if (!items.length) { text += '(No items in this list yet)'; }
+  else {
+    items.forEach((item,i)=>{
+      text += `${i+1}. ${item.title}\n`;
+      if (item.type) text += `   Type: ${TICO[item.type]||''} ${item.type}`;
+      if (item.time) text += `  ·  ~${item.time} min`;
+      if (item.source) text += `  ·  via ${item.source}`;
+      text += '\n';
+      if (item.desc) text += `   ${item.desc}\n`;
+      if (item.url)  text += `   ${item.url}\n`;
+      if (item.tags?.length) text += `   Tags: ${item.tags.join(', ')}\n`;
+      if (item.takeaways?.length) {
+        text += `   Key takeaways:\n`;
+        item.takeaways.forEach((t,j)=>{ if(t) text += `   ${j+1}. ${t}\n`; });
+      }
+      text += '\n';
+    });
+  }
+  document.getElementById('email-preview').textContent = text;
+  return text;
+}
+
+function openEmail() {
+  const to = document.getElementById('share-email').value.trim();
+  const text = document.getElementById('email-preview').textContent;
+  const subject = encodeURIComponent(`ReadQueue — "${shareListName}" list`);
+  const body = encodeURIComponent(text);
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${subject}&body=${body}`;
+}
+
+// ── RENDER TABS ───────────────────────────────────────────
+let activeTab = '__all__';
+function renderTabs() {
+  const wrap = document.getElementById('list-tabs');
+  const allCount = S.items.filter(i=>i.profile===S.profile).length;
+  let html = `<button class="ltab ${activeTab==='__all__'?'active':''}" onclick="setTab('__all__')">All <span class="lcount">${allCount}</span></button>`;
+  S.lists.forEach(l=>{
+    const cnt = S.items.filter(i=>i.profile===S.profile&&(i.lists||[]).includes(l.name)).length;
+    html += `<button class="ltab ${activeTab===l.name?'active':''}" onclick="setTab('${esc(l.name)}')">${esc(l.name)} <span class="lcount">${cnt}</span></button>`;
+  });
+  html += `<button class="ltab-new" onclick="openListsManager()">+ New list</button>`;
+  // Share button for active list
+  if (activeTab !== '__all__') {
+    html += `<button class="btn btn-sm btn-pu" style="margin-left:auto" onclick="openShareList('${esc(activeTab)}')">✉ Share list</button>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function setTab(name) {
+  activeTab = name;
+  // Update empty state messaging
+  if (name !== '__all__') {
+    document.getElementById('empty-h').textContent = `No items in "${name}" yet`;
+    document.getElementById('empty-p').textContent = 'Add items to your queue and assign them to this list.';
+  } else {
+    document.getElementById('empty-h').textContent = 'Your queue is clear';
+    document.getElementById('empty-p').textContent = 'Add articles, podcasts, videos, and PDFs you want to revisit and reflect on.';
+  }
+  renderTabs();
+  renderList();
+}
+
+// ── RENDER LIST MANAGER ───────────────────────────────────
+function renderListsManager() {
+  const wrap = document.getElementById('lists-manager-rows');
+  if (!S.lists.length) { wrap.innerHTML = '<p style="font-size:.82rem;color:var(--text3);padding:.5rem 0">No lists yet. Create one above.</p>'; return; }
+  wrap.innerHTML = S.lists.map(l=>{
+    const cnt = S.items.filter(i=>(i.lists||[]).includes(l.name)).length;
+    return `<div class="list-manager-row">
+      <span class="lm-name">${esc(l.name)}</span>
+      <span class="lm-count">${cnt} item${cnt!==1?'s':''}</span>
+      <button class="btn btn-sm btn-gh" onclick="openRenameList('${l.id}')">Rename</button>
+      <button class="btn btn-sm btn-pu" onclick="openShareList('${esc(l.name)}');cm('m-lists')">✉ Share</button>
+      <button class="btn btn-sm btn-d" onclick="deleteList('${l.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+
+function openListsManager() {
+  renderListsManager();
+  om('m-lists');
+}
+
+// ── RENDER ADD/EDIT LIST CHECKBOXES ──────────────────────
+function renderAddListChecks() {
+  const wrap = document.getElementById('list-checks-add');
+  if (!S.lists.length) { wrap.innerHTML = '<span class="hint">No lists yet — create one via ⊞ Lists in the header.</span>'; return; }
+  wrap.innerHTML = S.lists.map(l=>`
+    <label class="lcheck ${clists.includes(l.name)?'on':''}" onclick="toggleListCheck('${esc(l.name)}',this)">
+      <input type="checkbox" ${clists.includes(l.name)?'checked':''}/>
+      ${esc(l.name)}
+    </label>`).join('');
+}
+function toggleListCheck(name, el) {
+  const idx = clists.indexOf(name);
+  if (idx>=0) { clists.splice(idx,1); el.classList.remove('on'); }
+  else { clists.push(name); el.classList.add('on'); }
+}
+
+// ── RENDER MAIN LIST ─────────────────────────────────────
+function renderList() {
+  const prof=S.profile;
+  const q=document.getElementById('search-inp').value.toLowerCase();
+  const fs=document.getElementById('f-status').value;
+  const ft=document.getElementById('f-type').value;
+  const fp=document.getElementById('f-prio').value;
+  const fg=document.getElementById('f-tag').value;
+  const so=document.getElementById('f-sort').value;
+
+  let items=S.items.filter(i=>i.profile===prof&&i.id);
+  // Tab filter
+  if (activeTab!=='__all__') items=items.filter(i=>(i.lists||[]).includes(activeTab));
+  if(q)items=items.filter(i=>i.title.toLowerCase().includes(q)||(i.desc||'').toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q)));
+  if(fs)items=items.filter(i=>i.status===fs);
+  if(ft)items=items.filter(i=>i.type===ft);
+  if(fp)items=items.filter(i=>i.prio===fp);
+  if(fg)items=items.filter(i=>(i.tags||[]).includes(fg));
+  if(so==='saved_desc')items.sort((a,b)=>b.saved-a.saved);
+  else if(so==='saved_asc')items.sort((a,b)=>a.saved-b.saved);
+  else if(so==='prio')items.sort((a,b)=>PO[a.prio||'medium']-PO[b.prio||'medium']);
+  else if(so==='title')items.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(so==='time')items.sort((a,b)=>(a.time||999)-(b.time||999));
+
+  const all=S.items.filter(i=>i.profile===prof&&i.id);
+  const ur=all.filter(i=>i.status==='unreviewed').length;
+  const ip=all.filter(i=>i.status==='in-progress').length;
+  const rv=all.filter(i=>i.status==='reviewed').length;
+  const sp=document.getElementById('spill');
+  const bar=document.getElementById('sbar');
+  bar.innerHTML=`<span class="stat"><span class="sdot" style="background:var(--amber)"></span>${ur} unreviewed</span><span class="stat"><span class="sdot" style="background:var(--blue)"></span>${ip} in progress</span><span class="stat"><span class="sdot" style="background:var(--accent)"></span>${rv} reviewed</span><span class="stat">${items.length} shown</span>`;
+  if(sp)bar.appendChild(sp);
+
+  const allTags=[...new Set(S.items.filter(i=>i.profile===prof).flatMap(i=>i.tags||[]))].sort();
+  const tsel=document.getElementById('f-tag');const ctag=tsel.value;
+  tsel.innerHTML='<option value="">All tags</option>'+allTags.map(t=>`<option value="${esc(t)}"${t===ctag?' selected':''}>${esc(t)}</option>`).join('');
+
+  const cl=document.getElementById('clist');
+  document.getElementById('empty').style.display=items.length?'none':'block';
+  cl.style.display=items.length?'':'none';
+
+  cl.innerHTML=items.map(item=>{
+    const sb={unreviewed:`<span class="badge bu">● Unreviewed</span>`,'in-progress':`<span class="badge bi">◑ In progress</span>`,reviewed:`<span class="badge br">✓ Reviewed</span>`}[item.status]||'';
+    const pe=item.prio==='high'?`<span class="ph">↑ High</span>`:item.prio==='low'?`<span class="pl">Low</span>`:`<span class="pm">Med</span>`;
+    const tags=(item.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    const lists=(item.lists||[]).map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');
+    const meta=[
+      sb,
+      `<span class="tbadge">${TICO[item.type]||'📎'} ${esc(item.type||'other')}</span>`,
+      pe,
+      item.time?`<span class="sep">·</span><span>${item.time} min`:'',
+      item.source?`<span class="sep">·</span><span>via ${esc(item.source)}</span>`:'',
+      `<span class="sep">·</span><span>${fd(item.saved)}</span>`,
+      lists?`<span class="sep">·</span>${lists}`:'',
+    ].filter(Boolean).join('');
+    return `<div class="icard" onclick="openDetail('${item.id}')">
+      <div class="cmeta">${meta}</div>
+      <div class="cbody">
+        <div class="ctitle">${esc(item.title)}</div>
+        ${item.desc?`<div class="cdesc">${esc(item.desc)}</div>`:''}
+      </div>
+      <div class="cfoot">
+        <div class="trow">${tags}</div>
+        <div class="cact" onclick="event.stopPropagation()">
+          <button class="btn btn-ic btn-gh btn-sm" title="Edit" onclick="openEdit('${item.id}')">✏</button>
+          <button class="btn btn-ic btn-d btn-sm" title="Delete" onclick="delCard('${item.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ADD / EDIT ────────────────────────────────────────────
+function openAddModal() {
+  eid=null;ctags=[];clists=activeTab!=='__all__'?[activeTab]:[];
+  document.getElementById('m-ttl').textContent='Add to queue';
+  cf();renderAddListChecks();om('m-add');
+}
+function openEdit(id) {
+  const it=S.items.find(i=>i.id===id);if(!it)return;
+  eid=id;ctags=[...(it.tags||[])];clists=[...(it.lists||[])];
+  document.getElementById('m-ttl').textContent='Edit item';
+  document.getElementById('f-url').value=it.url||'';
+  document.getElementById('f-title').value=it.title;
+  document.getElementById('f-desc').value=it.desc||'';
+  document.getElementById('f-type-inp').value=it.type;
+  document.getElementById('f-prio-inp').value=it.prio||'medium';
+  document.getElementById('f-time').value=it.time||'';
+  document.getElementById('f-src').value=it.source||'';
+  document.getElementById('f-status-inp').value=it.status;
+  document.getElementById('ai-wrap').style.display='none';
+  rtc();renderAddListChecks();om('m-add');
+}
+function cf() {
+  ['f-url','f-title','f-desc','f-time','f-src'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-type-inp').value='article';
+  document.getElementById('f-prio-inp').value='medium';
+  document.getElementById('f-status-inp').value='unreviewed';
+  document.getElementById('ai-wrap').style.display='none';
+  ctags=[];rtc();
+}
+async function saveItem() {
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){document.getElementById('f-title').focus();return;}
+  const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Saving…';
+  const now=Date.now();const ex=eid?S.items.find(i=>i.id===eid):null;
+  const item={
+    id:eid||uid(),profile:S.profile,
+    url:document.getElementById('f-url').value.trim(),title,
+    desc:document.getElementById('f-desc').value.trim(),
+    type:document.getElementById('f-type-inp').value,
+    prio:document.getElementById('f-prio-inp').value,
+    time:parseInt(document.getElementById('f-time').value)||null,
+    source:document.getElementById('f-src').value.trim(),
+    status:document.getElementById('f-status-inp').value,
+    tags:[...ctags],lists:[...clists],
+    saved:ex?ex.saved:now,updated:now,
+    takeaways:ex?(ex.takeaways||[]):[],_row:ex?ex._row:null
+  };
+  if(eid)S.items=S.items.map(i=>i.id===eid?item:i);else S.items.unshift(item);
+  renderTabs();renderList();cm('m-add');
+  btn.disabled=false;btn.textContent='Save to queue';
+  await writeItem(item,!eid);
+  if(did===eid)openDetail(eid);
+}
+async function delCard(id) {
+  if(!confirm('Remove this item?'))return;
+  const it=S.items.find(i=>i.id===id);
+  S.items=S.items.filter(i=>i.id!==id);
+  renderTabs();renderList();if(did===id)closeDetail();
+  if(it)await deleteFromSheet(it);
+}
+
+// ── AI ────────────────────────────────────────────────────
+function urlChanged(){const url=document.getElementById('f-url').value.trim();if(!url.startsWith('http'))return;clearTimeout(utmr);utmr=setTimeout(()=>aiTag(url),900);}
+async function aiTag(url){
+  if(!S.ak)return;
+  const w=document.getElementById('ai-wrap'),b=document.getElementById('aibar'),t=document.getElementById('aitxt');
+  w.style.display='block';b.className='aibar';t.textContent='Analysing with Claude…';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.ak,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`Analyze this URL and return ONLY valid JSON (no markdown):
+URL: ${url}
+{"title":"concise title","desc":"2-sentence description","type":"article|podcast|video|pdf|substack|journal|other","tags":["tag1","tag2"],"time":minutes_integer}
+type: youtube=video, spotify/podcast=podcast, substack.com=substack, arxiv/pubmed=journal.
+tags: 2-5 from: finance AI economics technology health politics science history philosophy business investing culture psychology environment`}]})});
+    const data=await resp.json();if(data.error)throw new Error(data.error.message);
+    const p=JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    if(p.title&&!document.getElementById('f-title').value)document.getElementById('f-title').value=p.title;
+    if(p.desc&&!document.getElementById('f-desc').value)document.getElementById('f-desc').value=p.desc;
+    if(p.type)document.getElementById('f-type-inp').value=p.type;
+    if(p.time)document.getElementById('f-time').value=p.time;
+    if(p.tags?.length){ctags=p.tags;rtc();}
+    b.className='aibar ok';t.textContent='✓ AI suggestions applied — edit as needed';
+  }catch(e){b.className='aibar err';t.textContent='AI unavailable — fill in manually. ('+esc(e.message)+')';}
+}
+
+// ── TAGS ─────────────────────────────────────────────────
+function rtc(){const w=document.getElementById('tiw'),inp=document.getElementById('tri');w.innerHTML='';ctags.forEach((tag,i)=>{const c=document.createElement('span');c.className='tchip';c.innerHTML=`${esc(tag)}<button onclick="rt(${i})">×</button>`;w.appendChild(c);});w.appendChild(inp);}
+function rt(i){ctags.splice(i,1);rtc();}
+function tkd(e){if(e.key==='Enter'||e.key===','){e.preventDefault();const v=e.target.value.trim().replace(/,$/,'').toLowerCase();if(v&&!ctags.includes(v)){ctags.push(v);rtc();}e.target.value='';}else if(e.key==='Backspace'&&!e.target.value&&ctags.length){ctags.pop();rtc();}}
+
+// ── DETAIL ────────────────────────────────────────────────
+function openDetail(id){
+  const it=S.items.find(i=>i.id===id);if(!it)return;did=id;
+  document.getElementById('dp-title').textContent=it.title;
+  const pl={high:'↑ High priority',medium:'Medium priority',low:'Low priority'}[it.prio||'medium'];
+  document.getElementById('dp-meta').innerHTML=[
+    `<span>${TICO[it.type]||'📎'} ${esc(it.type)}</span>`,`<span>${pl}</span>`,
+    it.time?`<span>~${it.time} min</span>`:'',it.source?`<span>via ${esc(it.source)}</span>`:'',
+    `<span>Saved ${fd(it.saved)}</span>`].filter(Boolean).join('<span style="opacity:.3;padding:0 2px">·</span>');
+  document.getElementById('dp-desc').textContent=it.desc||'No description.';
+  document.getElementById('dp-sbtns').innerHTML=['unreviewed','in-progress','reviewed'].map(s=>
+    `<button class="btn btn-sm ${it.status===s?'btn-p':''}" onclick="setSt('${s}')">${SLL[s]}</button>`).join('');
+  rta(it);
+  document.getElementById('dp-tags').innerHTML=(it.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  const dpLists = document.getElementById('dp-lists');
+  if ((it.lists||[]).length) {
+    dpLists.innerHTML=(it.lists).map(l=>`<span class="lbadge">${esc(l)}</span>`).join('');
+    document.getElementById('dp-lists-wrap').style.display='';
+  } else {
+    document.getElementById('dp-lists-wrap').style.display='none';
+  }
+  document.getElementById('dp-acts').innerHTML=[
+    it.url?`<a class="lbtn" href="${esc(it.url)}" target="_blank">↗ Open original</a>`:'',
+    `<button class="btn btn-sm" onclick="openEdit('${id}')">✏ Edit</button>`,
+    `<button class="btn btn-sm btn-d" onclick="delCard('${id}')">🗑 Delete</button>`].filter(Boolean).join('');
+  const o=document.getElementById('d-ov');o.style.display='flex';requestAnimationFrame(()=>o.classList.add('open'));
+}
+function closeDetail(){const o=document.getElementById('d-ov');o.classList.remove('open');setTimeout(()=>o.style.display='none',250);did=null;}
+async function setSt(st){const it=S.items.find(i=>i.id===did);if(!it)return;it.status=st;it.updated=Date.now();renderList();openDetail(did);await writeItem(it,false);}
+function rta(it){
+  const list=document.getElementById('dp-ta');const ta=it.takeaways||[];
+  list.innerHTML=ta.map((t,i)=>`<li class="tai"><span class="tanum">${i+1}.</span><textarea class="tainp" rows="1" placeholder="Key insight…" onchange="svta(${i},this.value)" oninput="ar(this)">${esc(t)}</textarea><button class="btn btn-ic btn-gh btn-sm" onclick="rmta(${i})" style="opacity:.5;flex-shrink:0">✕</button></li>`).join('');
+  document.getElementById('dp-addta').style.display=ta.length>=3?'none':'';
+  list.querySelectorAll('textarea').forEach(ar);
+}
+function ar(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+async function addTakeaway(){const it=S.items.find(i=>i.id===did);if(!it||(it.takeaways||[]).length>=3)return;it.takeaways=[...(it.takeaways||[]),''];it.updated=Date.now();rta(it);}
+async function svta(idx,val){const it=S.items.find(i=>i.id===did);if(!it)return;it.takeaways[idx]=val;it.updated=Date.now();await writeItem(it,false);}
+async function rmta(idx){const it=S.items.find(i=>i.id===did);if(!it)return;it.takeaways.splice(idx,1);it.updated=Date.now();rta(it);await writeItem(it,false);}
+
+// ── PROFILE ──────────────────────────────────────────────
+function switchProfile(p){S.profile=p;svl();document.getElementById('p-me').classList.toggle('active',p==='me');document.getElementById('p-pt').classList.toggle('active',p==='partner');if(did)closeDetail();activeTab='__all__';renderTabs();renderList();upl();}
+function upl(){document.getElementById('p-me').textContent=S.names?.me||'Me';document.getElementById('p-pt').textContent=S.names?.partner||'Partner';}
+
+// ── SETTINGS ─────────────────────────────────────────────
+function openSettings(){document.getElementById('s-ant').value=S.ak||'';document.getElementById('s-nm').value=S.names?.me||'';document.getElementById('s-np').value=S.names?.partner||'';document.getElementById('s-email').textContent=S.userEmail;om('m-set');}
+function saveSettings(){S.ak=document.getElementById('s-ant').value.trim();S.names={me:document.getElementById('s-nm').value.trim()||'Me',partner:document.getElementById('s-np').value.trim()||'Partner'};svl();upl();cm('m-set');}
+
+// ── MODALS ────────────────────────────────────────────────
+function om(id){const e=document.getElementById(id);e.style.display='flex';requestAnimationFrame(()=>e.classList.add('open'));}
+function cm(id){const e=document.getElementById(id);e.classList.remove('open');setTimeout(()=>e.style.display='none',200);}
+function mc(e,id){if(e.target===document.getElementById(id))cm(id);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    ['m-add','m-set','m-lists','m-share','m-rename'].forEach(id=>{if(document.getElementById(id)?.classList.contains('open'))cm(id);});
+    if(document.getElementById('d-ov')?.classList.contains('open'))closeDetail();
+  }
+});
+
+// ── HELPERS ──────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function fd(ts){if(!ts)return'—';const d=new Date(ts),n=new Date(),df=(n-d)/864e5;if(df<1)return'Today';if(df<2)return'Yesterday';if(df<7)return Math.floor(df)+'d ago';return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setSbar(html){document.getElementById('sbar').innerHTML=html;}
+function sync(state,msg){const bar=document.getElementById('sbar');const ex=document.getElementById('spill');if(ex)ex.remove();const p=document.createElement('span');p.id='spill';p.className='sync';p.innerHTML=`<span class="syncdot ${state==='spin'?'spinning':state==='err'?'err':''}"></span>${esc(msg)}`;bar.appendChild(p);}
+</script>
+</body>
+</html>
