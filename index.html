@@ -458,7 +458,7 @@ let tokenClient;
 function initTokenClient() {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    scope: 'https://www.googleapis.com/auth/drive.file',
     callback: async (tokenResponse) => {
       if (tokenResponse.error) {
         document.getElementById('signin-err').textContent = 'Authentication failed: ' + tokenResponse.error;
