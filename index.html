@@ -261,6 +261,14 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
       📂 Select my ReadQueue sheet
     </button>
     <div class="connect-err" id="connect-err"></div>
+    <details style="width:100%;margin-top:.5rem">
+      <summary style="font-size:.78rem;color:var(--text3);cursor:pointer;user-select:none">Having trouble? Enter Sheet ID manually</summary>
+      <div style="display:flex;gap:8px;margin-top:.65rem">
+        <input type="text" id="manual-sheet-id" placeholder="1caXpz…" style="flex:1;font-size:.82rem;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:monospace"/>
+        <button class="btn btn-p btn-sm" onclick="connectManual()">Connect</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--text3);margin-top:.4rem">Your Sheet ID is the long string in the URL between /d/ and /edit</p>
+    </details>
     <div style="font-size:.75rem;color:var(--text3)">Only your ReadQueue sheet will be accessible — not the rest of your Drive.</div>
   </div>
 </div>
@@ -586,18 +594,32 @@ function openPicker() {
 }
 
 function showPicker() {
-  const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
-    .setIncludeFolders(false)
-    .setSelectFolderEnabled(false);
+  const err = document.getElementById('connect-err');
+  try {
+    if (!google || !google.picker) throw new Error('google.picker not available — Picker API may not be enabled in Google Cloud Console.');
+    if (!S.accessToken) throw new Error('No access token — please sign out and sign in again.');
 
-  const picker = new google.picker.PickerBuilder()
-    .addView(view)
-    .setOAuthToken(S.accessToken)
-    .setDeveloperKey(GOOGLE_KEY)
-    .setTitle('Select your ReadQueue Google Sheet')
-    .setCallback(pickerCallback)
-    .build();
-  picker.setVisible(true);
+    const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+      .setIncludeFolders(false)
+      .setSelectFolderEnabled(false);
+
+    const picker = new google.picker.PickerBuilder()
+      .addView(view)
+      .setOAuthToken(S.accessToken)
+      .setDeveloperKey(GOOGLE_KEY)
+      .setTitle('Select your ReadQueue Google Sheet')
+      .setCallback(pickerCallback)
+      .build();
+    picker.setVisible(true);
+  } catch(e) {
+    console.error('Picker error:', e);
+    if (err) {
+      err.textContent = 'Picker error: ' + e.message;
+      err.classList.add('show');
+    }
+    const btn = document.querySelector('#connect-screen .btn-p');
+    if (btn) { btn.textContent = '📂 Select my ReadQueue sheet'; btn.disabled = false; }
+  }
 }
 
 async function pickerCallback(data) {
@@ -610,6 +632,16 @@ async function pickerCallback(data) {
     launchApp();
   }
   // if CANCEL — stay on connect screen, do nothing
+}
+
+function connectManual() {
+  const val = document.getElementById('manual-sheet-id').value.trim();
+  if (!val) { alert('Please paste your Sheet ID.'); return; }
+  // Accept full URL or just the ID
+  const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  S.sheetId = match ? match[1] : val;
+  svl();
+  launchApp();
 }
 
 function showAKPrompt() {
