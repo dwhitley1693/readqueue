@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="ReadQueue">
 <title>ReadQueue</title>
 <script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://apis.google.com/js/api.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -42,6 +43,16 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:16px;-webkit-text-size-adjust:100%;}
 body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
+
+/* ── CONNECT SHEET SCREEN ── */
+#connect-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;}
+#connect-screen.show{display:flex;}
+.connect-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem;box-shadow:var(--shadow-lg);max-width:420px;width:100%;text-align:center;}
+.connect-icon{font-size:2.5rem;opacity:.7;}
+.connect-title{font-family:var(--fd);font-size:1.2rem;font-style:italic;font-weight:700;}
+.connect-desc{font-size:.85rem;color:var(--text2);line-height:1.6;}
+.connect-err{font-size:.8rem;color:var(--red);background:var(--red-light);padding:.5rem .9rem;border-radius:var(--radius-sm);display:none;width:100%;}
+.connect-err.show{display:block;}
 
 /* ── SIGN-IN SCREEN ── */
 #signin-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:2rem;}
@@ -237,6 +248,23 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
   </div>
 </div>
 
+<!-- CONNECT SHEET SCREEN -->
+<div id="connect-screen">
+  <div class="signin-logo">Read<span>Queue</span></div>
+  <div class="connect-card">
+    <div class="connect-icon">📊</div>
+    <div class="connect-title">Connect your ReadQueue sheet</div>
+    <div class="connect-desc">
+      Because you're using the secure <em>drive.file</em> permission, you need to select your ReadQueue Google Sheet once so the app can access it. You'll never be asked again on this device.
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:.65rem" onclick="openPicker()">
+      📂 Select my ReadQueue sheet
+    </button>
+    <div class="connect-err" id="connect-err"></div>
+    <div style="font-size:.75rem;color:var(--text3)">Only your ReadQueue sheet will be accessible — not the rest of your Drive.</div>
+  </div>
+</div>
+
 <!-- APP -->
 <div class="app" id="app" style="display:none">
   <header class="header">
@@ -321,7 +349,8 @@ hr.dpd{border:none;border-top:1px solid var(--border);}
       <div class="fg"><label>Profile names</label><div class="fr"><input type="text" id="s-nm" placeholder="Me"/><input type="text" id="s-np" placeholder="Partner"/></div></div>
       <div style="padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm);font-size:.8rem;color:var(--text2)">
         Signed in as <strong id="s-email"></strong><br>
-        <span class="hint">Sheet ID: 1caXpzRlZ35Hc60ZqDUckUKV16xDFy8rmQUp7m3M1hpk</span>
+        <span class="hint">Connected sheet: <span id="s-sheetid" style="font-family:monospace;font-size:.72rem"></span></span><br>
+        <button class="btn btn-sm btn-gh" style="margin-top:.5rem;font-size:.75rem" onclick="disconnectSheet()">↺ Connect a different sheet</button>
       </div>
     </div>
     <div class="mfoot"><button class="btn" onclick="cm('m-set')">Cancel</button><button class="btn btn-p" onclick="saveSettings()">Save</button></div>
@@ -425,6 +454,7 @@ let S = {
   userEmail:'',
   userName:'',
   userPic:'',
+  sheetId:null, // set via Google Picker, persisted in localStorage
 };
 let eid=null,did=null,ctags=[],clists=[],utmr=null;
 let renamingListId=null;
@@ -435,8 +465,8 @@ const PO={high:0,medium:1,low:2};
 const SLL={unreviewed:'● Unreviewed','in-progress':'◑ In progress',reviewed:'✓ Reviewed'};
 
 // ── LOCAL STORAGE ─────────────────────────────────────────
-function ldl(){try{const r=JSON.parse(localStorage.getItem('rq4')||'{}');S.ak=r.ak||'';S.names=r.names||{me:'Me',partner:'Partner'};S.profile=r.profile||'me';}catch(e){}}
-function svl(){localStorage.setItem('rq4',JSON.stringify({ak:S.ak,names:S.names,profile:S.profile}));}
+function ldl(){try{const r=JSON.parse(localStorage.getItem('rq4')||'{}');S.ak=r.ak||'';S.names=r.names||{me:'Me',partner:'Partner'};S.profile=r.profile||'me';S.sheetId=r.sheetId||SHEET_ID;}catch(e){}}
+function svl(){localStorage.setItem('rq4',JSON.stringify({ak:S.ak,names:S.names,profile:S.profile,sheetId:S.sheetId}));}
 
 // ── GOOGLE SIGN-IN ────────────────────────────────────────
 function onGoogleSignIn(response) {
@@ -488,19 +518,82 @@ function signOut() {
 
 async function bootApp() {
   document.getElementById('signin-screen').classList.remove('show');
-  document.getElementById('app').style.display = 'flex';
   ldl();
-  // Avatar
+  // Avatar (set early so it's ready when app shows)
   const av = document.getElementById('user-avatar');
   if (S.userPic) av.innerHTML = `<img src="${S.userPic}" alt="">`;
   else av.textContent = S.userEmail.slice(0,2).toUpperCase();
   upl();
+
+  // If no sheet ID stored yet, show the picker screen
+  if (!S.sheetId) {
+    document.getElementById('connect-screen').classList.add('show');
+    // Pre-load the picker API in background
+    if (window.gapi) gapi.load('picker', ()=>{});
+    return;
+  }
+  launchApp();
+}
+
+async function launchApp() {
+  document.getElementById('connect-screen').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
   setSbar('<div class="loading"><div class="spinner"></div> Loading…</div>');
   await ensureHeaders();
   await Promise.all([loadLists(), loadItems()]);
   renderTabs();
   renderList();
   if (!S.ak) showAKPrompt();
+}
+
+// ── GOOGLE PICKER ─────────────────────────────────────────
+function openPicker() {
+  if (!window.gapi) {
+    // gapi not loaded yet — load it now
+    const s = document.createElement('script');
+    s.src = 'https://apis.google.com/js/api.js';
+    s.onload = () => gapi.load('picker', showPicker);
+    document.head.appendChild(s);
+  } else {
+    gapi.load('picker', showPicker);
+  }
+}
+
+function showPicker() {
+  const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+    .setIncludeFolders(false)
+    .setSelectFolderEnabled(false);
+
+  const picker = new google.picker.PickerBuilder()
+    .addView(view)
+    .setOAuthToken(S.accessToken)
+    .setTitle('Select your ReadQueue Google Sheet')
+    .setCallback(pickerCallback)
+    .build();
+  picker.setVisible(true);
+}
+
+async function pickerCallback(data) {
+  if (data.action === google.picker.Action.PICKED) {
+    const doc = data.docs[0];
+    S.sheetId = doc.id;
+    svl(); // persist to localStorage
+    // Verify it's the right sheet by checking its name
+    try {
+      const meta = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}?fields=properties.title`,
+        { headers: { 'Authorization': 'Bearer ' + S.accessToken } }
+      ).then(r=>r.json());
+      const title = meta.properties?.title || doc.name;
+      if (!title.toLowerCase().includes('readqueue') && !title.toLowerCase().includes('read queue')) {
+        const ok = confirm(`You selected "${title}". Is this your ReadQueue sheet?`);
+        if (!ok) { S.sheetId = null; svl(); return; }
+      }
+    } catch(e) { /* non-fatal, proceed anyway */ }
+    launchApp();
+  } else if (data.action === google.picker.Action.CANCEL) {
+    // user cancelled — just stay on connect screen
+  }
 }
 
 function showAKPrompt() {
@@ -514,7 +607,7 @@ function showAKPrompt() {
 
 // ── SHEETS API (OAuth) ────────────────────────────────────
 async function sReq(method, path, body) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}${path}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}${path}`;
   const opts = { method, headers: { 'Authorization': 'Bearer ' + S.accessToken, 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);
@@ -1015,8 +1108,21 @@ function switchProfile(p){S.profile=p;svl();document.getElementById('p-me').clas
 function upl(){document.getElementById('p-me').textContent=S.names?.me||'Me';document.getElementById('p-pt').textContent=S.names?.partner||'Partner';}
 
 // ── SETTINGS ─────────────────────────────────────────────
-function openSettings(){document.getElementById('s-ant').value=S.ak||'';document.getElementById('s-nm').value=S.names?.me||'';document.getElementById('s-np').value=S.names?.partner||'';document.getElementById('s-email').textContent=S.userEmail;om('m-set');}
+function openSettings(){
+  document.getElementById('s-ant').value=S.ak||'';
+  document.getElementById('s-nm').value=S.names?.me||'';
+  document.getElementById('s-np').value=S.names?.partner||'';
+  document.getElementById('s-email').textContent=S.userEmail;
+  document.getElementById('s-sheetid').textContent=S.sheetId||'(none)';
+  om('m-set');
+}
 function saveSettings(){S.ak=document.getElementById('s-ant').value.trim();S.names={me:document.getElementById('s-nm').value.trim()||'Me',partner:document.getElementById('s-np').value.trim()||'Partner'};svl();upl();cm('m-set');}
+function disconnectSheet(){
+  if(!confirm('Disconnect the current sheet? You\'ll be asked to pick a sheet again on next load.'))return;
+  S.sheetId=null;svl();cm('m-set');
+  document.getElementById('app').style.display='none';
+  document.getElementById('connect-screen').classList.add('show');
+}
 
 // ── MODALS ────────────────────────────────────────────────
 function om(id){const e=document.getElementById(id);e.style.display='flex';requestAnimationFrame(()=>e.classList.add('open'));}
